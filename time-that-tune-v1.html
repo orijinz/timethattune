@@ -1194,6 +1194,9 @@ function finishRound(answerSeconds) {
 
   el.resultPanel.classList.remove('hidden');
   recordCompletedRound();
+  requestAnimationFrame(() => {
+    el.resultPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
 }
 
 async function loadAlbumArt(song) {
