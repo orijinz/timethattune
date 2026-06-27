@@ -147,6 +147,10 @@
     color: var(--accent-teal);
   }
 
+  .decade-option.active::before {
+    content: "\2713\00A0";
+  }
+
   .decade-option:disabled {
     color: var(--text-tertiary);
     cursor: not-allowed;
@@ -653,18 +657,18 @@
 
 <div class="app-shell">
   <div class="game-card">
-    <img class="logo-img" src="logo-slanted-cropped.png" alt="Time That Tune!">
+    <img class="logo-img" src="logo-v3-faded-blue.png" alt="Time That Tune!">
     <div class="meta-row">
       <div class="decade-select" id="decadeSelect">
         <button class="decade-badge" id="decadeBadge" type="button" aria-haspopup="listbox" aria-expanded="false">
-          70s <span class="decade-caret">&#9662;</span>
+          <span id="decadeBadgeLabel">70s</span> <span class="decade-caret">&#9662;</span>
         </button>
         <div class="decade-dropdown hidden" id="decadeDropdown" role="listbox">
-          <button class="decade-option active" type="button" role="option" aria-selected="true">&#10003; 70s</button>
+          <button class="decade-option active" type="button" role="option" aria-selected="true" data-decade="70s">70s</button>
           <button class="decade-option" type="button" role="option" disabled>60s <span class="decade-soon">Coming soon</span></button>
           <button class="decade-option" type="button" role="option" disabled>80s <span class="decade-soon">Coming soon</span></button>
           <button class="decade-option" type="button" role="option" disabled>90s <span class="decade-soon">Coming soon</span></button>
-          <button class="decade-option" type="button" role="option" disabled>2000s <span class="decade-soon">Coming soon</span></button>
+          <button class="decade-option" type="button" role="option" data-decade="2000s">2000s</button>
           <button class="decade-option" type="button" role="option" disabled>2010s <span class="decade-soon">Coming soon</span></button>
         </div>
       </div>
@@ -734,7 +738,7 @@
     </div>
   </div>
 
-  <p class="footer-note">Prototype build &middot; 1,838 songs &middot; 570 classic 70s artists &middot; no leaderboard yet</p>
+  <p class="footer-note" id="footerNote">Prototype build &middot; 1,838 songs &middot; 570 classic 70s artists &middot; no leaderboard yet</p>
 </div>
 
 <div class="help-overlay hidden" id="helpOverlay">
@@ -781,6 +785,7 @@ const el = {
   againBtn: document.getElementById('againBtn'),
   statsRow: document.getElementById('statsRow'),
   staffNotes: Array.from(document.querySelectorAll('.staff-note')),
+  footerNote: document.getElementById('footerNote'),
 };
 
 const NOTE_MOTION = [
@@ -1215,9 +1220,10 @@ el.durationSlider.addEventListener('input', e => {
   el.durationValue.textContent = selectedDuration + 's';
 });
 
-// ---- Decade selector (only 70s has content for now; rest are disabled placeholders) ----
+// ---- Decade selector (70s and 2000s have content; the rest are disabled placeholders) ----
 const decadeSelect = document.getElementById('decadeSelect');
 const decadeBadge = document.getElementById('decadeBadge');
+const decadeBadgeLabel = document.getElementById('decadeBadgeLabel');
 const decadeDropdown = document.getElementById('decadeDropdown');
 
 function closeDecadeDropdown() {
@@ -1233,7 +1239,36 @@ decadeBadge.addEventListener('click', e => {
   decadeBadge.setAttribute('aria-expanded', String(isOpen));
 });
 
-decadeDropdown.querySelector('.decade-option.active').addEventListener('click', closeDecadeDropdown);
+function applyDecadeUI(decade) {
+  const meta = CATALOG_META[decade];
+  decadeBadgeLabel.textContent = meta.label;
+  el.footerNote.textContent = meta.footerNote;
+  decadeDropdown.querySelectorAll('.decade-option[data-decade]').forEach(btn => {
+    const isActive = btn.dataset.decade === decade;
+    btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-selected', String(isActive));
+  });
+}
+
+async function switchDecade(decade) {
+  closeDecadeDropdown();
+  if (decade === currentDecade) return;
+  el.playBtn.disabled = true;
+  el.artistName.textContent = 'Loading…';
+  try {
+    await loadCatalog(decade);
+  } catch (e) {
+    el.artistName.textContent = 'Could not load song catalog';
+    console.error(e);
+    return;
+  }
+  applyDecadeUI(decade);
+  startNewRound(true);
+}
+
+decadeDropdown.querySelectorAll('.decade-option[data-decade]').forEach(btn => {
+  btn.addEventListener('click', () => switchDecade(btn.dataset.decade));
+});
 
 document.addEventListener('click', e => {
   if (!decadeSelect.contains(e.target)) closeDecadeDropdown();
@@ -1264,11 +1299,26 @@ audioEl.addEventListener('ended', () => {
 
 // ---- Catalog loading: fetched at runtime so the HTML doesn't have to embed ----
 // ---- thousands of songs inline. Requires serving over http(s), not file://. ----
+const CATALOG_META = {
+  '70s': {
+    file: 'ttt-songs-70s-v2.json',
+    label: '70s',
+    footerNote: 'Prototype build · 1,838 songs · 570 classic 70s artists · no leaderboard yet',
+  },
+  '2000s': {
+    file: 'ttt-songs-2000s-v1.json',
+    label: '2000s',
+    footerNote: 'Prototype build · 1,100 songs · 575 artists from the 2000s · no leaderboard yet',
+  },
+};
+let currentDecade = '70s';
+
 async function loadCatalog(decade) {
-  const res = await fetch(`ttt-songs-${decade}-v2.json`);
+  const res = await fetch(CATALOG_META[decade].file);
   if (!res.ok) throw new Error(`Failed to load catalog for ${decade}: ${res.status}`);
   SONGS = await res.json();
   DAILY_ORDER = buildDailyOrder();
+  currentDecade = decade;
 }
 
 async function init() {
@@ -1281,6 +1331,7 @@ async function init() {
     console.error(e);
     return;
   }
+  applyDecadeUI('70s');
   startNewRound(true);
 }
 
