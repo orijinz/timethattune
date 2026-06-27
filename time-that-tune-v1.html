@@ -445,20 +445,24 @@
     display: block;
     margin: 12px auto 0;
     padding: 8px 18px;
-    border: 1px solid var(--border-color);
+    border: 1.5px solid var(--accent-teal);
     border-radius: var(--radius-full);
     background: transparent;
-    color: var(--text-secondary);
+    color: var(--accent-teal);
     font-family: inherit;
     font-size: 0.8125rem;
     font-weight: 600;
     cursor: pointer;
-    transition: border-color 150ms var(--ease), color 150ms var(--ease);
+    box-shadow: 0 0 10px rgba(0,206,209,0.25);
+    transition: transform 150ms var(--ease), box-shadow 150ms var(--ease);
   }
 
   .early-stop-btn:hover {
-    border-color: var(--accent-teal);
-    color: var(--accent-teal);
+    box-shadow: var(--glow-teal);
+  }
+
+  .early-stop-btn:active {
+    transform: scale(0.97);
   }
 
   .options-grid {
@@ -730,7 +734,7 @@
         <div class="progress-fill" id="progressFill"></div>
       </div>
       <p class="progress-caption" id="progressCaption">Listening…</p>
-      <button class="early-stop-btn" id="earlyStopBtn" type="button">I know it — stop early</button>
+      <button class="early-stop-btn" id="earlyStopBtn" type="button">Guess now — I know it!</button>
     </div>
 
     <div class="options-grid hidden" id="optionsGrid"></div>
@@ -768,7 +772,7 @@
     <ol>
       <li>You'll see an artist and a decade. Set the slider to the number of seconds you want to hear &mdash; your goal is to choose the fewest seconds you'll need to identify the song that's about to play.</li>
       <li>Hit <code>Play</code>. The clip plays for exactly the time you choose, then stops. The song clip is not generally the beginning of the song, it is a preview of some part of the song.</li>
-      <li>Know it already? Hit <code>I know it &mdash; stop early</code> to skip the rest of the clip. Your score becomes the average of your bet and how long you actually listened &mdash; so it's always worth stopping early once you're sure, but betting low and being right is still your best score.</li>
+      <li>Know it already? Hit <code>Guess now &mdash; I know it!</code> to skip the rest of the clip. Your score becomes the average of your bet and how long you actually listened &mdash; so it's always worth stopping early once you're sure, but betting low and being right is still your best score.</li>
       <li>Six song titles appear &mdash; one correct, five wrong. Pick the correct one.</li>
       <li>Wrong picks get eliminated but cost you 15 seconds each. Keep guessing until you get the right answer.</li>
     </ol>
@@ -1356,7 +1360,7 @@ const CATALOG_META = {
   '80s': {
     file: 'ttt-songs-80s-v1.json',
     label: '80s',
-    footerNote: 'Prototype build · 1,055 songs · 492 classic 80s artists · no leaderboard yet',
+    footerNote: 'Prototype build · 1,066 songs · 496 classic 80s artists · no leaderboard yet',
   },
 };
 let currentDecade = '70s';
