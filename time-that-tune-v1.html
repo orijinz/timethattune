@@ -441,6 +441,26 @@
     color: var(--text-tertiary);
   }
 
+  .early-stop-btn {
+    display: block;
+    margin: 12px auto 0;
+    padding: 8px 18px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 150ms var(--ease), color 150ms var(--ease);
+  }
+
+  .early-stop-btn:hover {
+    border-color: var(--accent-teal);
+    color: var(--accent-teal);
+  }
+
   .options-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -710,6 +730,7 @@
         <div class="progress-fill" id="progressFill"></div>
       </div>
       <p class="progress-caption" id="progressCaption">Listening…</p>
+      <button class="early-stop-btn" id="earlyStopBtn" type="button">I know it — stop early</button>
     </div>
 
     <div class="options-grid hidden" id="optionsGrid"></div>
@@ -747,10 +768,11 @@
     <ol>
       <li>You'll see an artist and a decade. Set the slider to the number of seconds you want to hear &mdash; your goal is to choose the fewest seconds you'll need to identify the song that's about to play.</li>
       <li>Hit <code>Play</code>. The clip plays for exactly the time you choose, then stops. The song clip is not generally the beginning of the song, it is a preview of some part of the song.</li>
+      <li>Know it already? Hit <code>I know it &mdash; stop early</code> to skip the rest of the clip. Your score becomes the average of your bet and how long you actually listened &mdash; so it's always worth stopping early once you're sure, but betting low and being right is still your best score.</li>
       <li>Six song titles appear &mdash; one correct, five wrong. Pick the correct one.</li>
       <li>Wrong picks get eliminated but cost you 15 seconds each. Keep guessing until you get the right answer.</li>
     </ol>
-    <p>Your score is seconds listened + seconds spent answering + 15s per wrong guess. Lower is better.</p>
+    <p>Your score is seconds listened (or, if you stopped early, the average of your bet and actual time) + seconds spent answering + 15s per wrong guess. Lower is better.</p>
     <button class="help-close-btn" id="helpCloseBtn" type="button">Got it</button>
   </div>
 </div>
@@ -771,6 +793,7 @@ const el = {
   progressWrap: document.getElementById('progressWrap'),
   progressFill: document.getElementById('progressFill'),
   progressCaption: document.getElementById('progressCaption'),
+  earlyStopBtn: document.getElementById('earlyStopBtn'),
   optionsGrid: document.getElementById('optionsGrid'),
   answerTimer: document.getElementById('answerTimer'),
   resultPanel: document.getElementById('resultPanel'),
@@ -841,6 +864,8 @@ let listenedSeconds = 0;
 let wrongCount = 0;
 let clipTimer = null;
 let roundActive = false;
+let playStartTime = 0;
+let stoppedEarly = false;
 
 let staffAnimFrame = null;
 let staffStartTime = null;
@@ -1103,6 +1128,8 @@ function onPlayClick() {
   el.playBtn.disabled = true;
   el.playBtn.textContent = 'Listening…';
   listenedSeconds = selectedDuration;
+  stoppedEarly = false;
+  playStartTime = performance.now();
 
   ensureAudioGraph();
   if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
@@ -1135,6 +1162,17 @@ function onPlayClick() {
     el.progressCaption.textContent = 'Time\'s up — what was it?';
     revealOptions();
   }, selectedDuration * 1000);
+}
+
+function onEarlyStopClick() {
+  if (!roundActive || stoppedEarly) return;
+  clearTimeout(clipTimer);
+  audioEl.pause();
+  stoppedEarly = true;
+  const elapsed = Math.min(selectedDuration, (performance.now() - playStartTime) / 1000);
+  listenedSeconds = Math.ceil((selectedDuration + elapsed) / 2);
+  el.progressCaption.textContent = 'Stopped early — what was it?';
+  revealOptions();
 }
 
 function revealOptions() {
@@ -1176,7 +1214,8 @@ function finishRound(answerSeconds) {
   const penalty = wrongCount * 15;
   const score = listenedSeconds + penalty + roundedAnswerSeconds;
   el.resultScore.textContent = score;
-  let breakdown = `${listenedSeconds}s listened + ${roundedAnswerSeconds}s to answer`;
+  const listenedLabel = stoppedEarly ? `${listenedSeconds}s (stopped early)` : `${listenedSeconds}s listened`;
+  let breakdown = `${listenedLabel} + ${roundedAnswerSeconds}s to answer`;
   if (wrongCount > 0) {
     breakdown += ` + ${wrongCount} wrong guess${wrongCount === 1 ? '' : 'es'} (${penalty}s)`;
   }
@@ -1291,6 +1330,7 @@ helpOverlay.addEventListener('click', e => { if (e.target === helpOverlay) close
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeHelp(); });
 
 el.playBtn.addEventListener('click', onPlayClick);
+el.earlyStopBtn.addEventListener('click', onEarlyStopClick);
 el.againBtn.addEventListener('click', () => startNewRound(false));
 
 audioEl.addEventListener('ended', () => {
