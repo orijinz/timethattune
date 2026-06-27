@@ -666,7 +666,7 @@
         <div class="decade-dropdown hidden" id="decadeDropdown" role="listbox">
           <button class="decade-option active" type="button" role="option" aria-selected="true" data-decade="70s">70s</button>
           <button class="decade-option" type="button" role="option" disabled>60s <span class="decade-soon">Coming soon</span></button>
-          <button class="decade-option" type="button" role="option" disabled>80s <span class="decade-soon">Coming soon</span></button>
+          <button class="decade-option" type="button" role="option" data-decade="80s">80s</button>
           <button class="decade-option" type="button" role="option" disabled>90s <span class="decade-soon">Coming soon</span></button>
           <button class="decade-option" type="button" role="option" data-decade="2000s">2000s</button>
           <button class="decade-option" type="button" role="option" disabled>2010s <span class="decade-soon">Coming soon</span></button>
@@ -1312,6 +1312,11 @@ const CATALOG_META = {
     file: 'ttt-songs-2000s-v1.json',
     label: '2000s',
     footerNote: 'Prototype build · 1,100 songs · 575 artists from the 2000s · no leaderboard yet',
+  },
+  '80s': {
+    file: 'ttt-songs-80s-v1.json',
+    label: '80s',
+    footerNote: 'Prototype build · 1,055 songs · 492 classic 80s artists · no leaderboard yet',
   },
 };
 let currentDecade = '70s';
