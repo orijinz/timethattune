@@ -539,10 +539,50 @@
     -webkit-text-fill-color: transparent;
   }
 
-  .result-breakdown {
+  .result-breakdown-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
     margin: 6px 0 16px;
+  }
+
+  .result-breakdown {
+    margin: 0;
     font-size: 0.875rem;
     color: var(--text-secondary);
+  }
+
+  .score-info-btn {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background: var(--surface-dim);
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 0.625rem;
+    font-weight: 700;
+    font-style: italic;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 150ms var(--ease), color 150ms var(--ease);
+  }
+
+  .score-info-btn:hover {
+    border-color: var(--accent-teal);
+    color: var(--accent-teal);
+  }
+
+  .score-info-detail {
+    margin: -10px 0 16px;
+    text-align: center;
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
   }
 
   .album-player {
@@ -646,6 +686,7 @@
   .again-btn {
     width: 100%;
     height: 48px;
+    margin-top: 20px;
     border: 1.5px solid var(--accent-blue);
     border-radius: var(--radius-full);
     background: transparent;
@@ -743,7 +784,11 @@
     <div class="result-panel hidden" id="resultPanel">
       <p class="result-score-label">Your score</p>
       <p class="result-score" id="resultScore">0</p>
-      <p class="result-breakdown" id="resultBreakdown"></p>
+      <div class="result-breakdown-row">
+        <p class="result-breakdown" id="resultBreakdown"></p>
+        <button class="score-info-btn hidden" id="scoreInfoBtn" type="button" aria-label="How this score was calculated">i</button>
+      </div>
+      <p class="score-info-detail hidden" id="scoreInfoDetail"></p>
       <div class="album-player" id="albumPlayer">
         <div class="album-art-wrap">
           <img class="album-art" id="albumArt" alt="">
@@ -776,7 +821,7 @@
       <li>Six song titles appear &mdash; one correct, five wrong. Pick the correct one.</li>
       <li>Wrong picks get eliminated but cost you 15 seconds each. Keep guessing until you get the right answer.</li>
     </ol>
-    <p>Your score is seconds listened (or, if you stopped early, the average of your bet and actual time) + seconds spent answering + 15s per wrong guess. Lower is better.</p>
+    <p>Your score is seconds listened (or, if you solved it early, the average of your bet and actual time) + seconds spent answering + 15s per wrong guess. Lower is better.</p>
     <button class="help-close-btn" id="helpCloseBtn" type="button">Got it</button>
   </div>
 </div>
@@ -803,6 +848,8 @@ const el = {
   resultPanel: document.getElementById('resultPanel'),
   resultScore: document.getElementById('resultScore'),
   resultBreakdown: document.getElementById('resultBreakdown'),
+  scoreInfoBtn: document.getElementById('scoreInfoBtn'),
+  scoreInfoDetail: document.getElementById('scoreInfoDetail'),
   albumArt: document.getElementById('albumArt'),
   albumArtPlaceholder: document.getElementById('albumArtPlaceholder'),
   albumSongName: document.getElementById('albumSongName'),
@@ -870,6 +917,7 @@ let clipTimer = null;
 let roundActive = false;
 let playStartTime = 0;
 let stoppedEarly = false;
+let earlyStopElapsedSeconds = 0;
 
 let staffAnimFrame = null;
 let staffStartTime = null;
@@ -1174,8 +1222,9 @@ function onEarlyStopClick() {
   audioEl.pause();
   stoppedEarly = true;
   const elapsed = Math.min(selectedDuration, (performance.now() - playStartTime) / 1000);
-  listenedSeconds = Math.ceil((selectedDuration + elapsed) / 2);
-  el.progressCaption.textContent = 'Stopped early — what was it?';
+  earlyStopElapsedSeconds = Math.round(elapsed);
+  listenedSeconds = Math.ceil((selectedDuration + earlyStopElapsedSeconds) / 2);
+  el.progressCaption.textContent = 'Solved early — what was it?';
   revealOptions();
 }
 
@@ -1218,12 +1267,21 @@ function finishRound(answerSeconds) {
   const penalty = wrongCount * 15;
   const score = listenedSeconds + penalty + roundedAnswerSeconds;
   el.resultScore.textContent = score;
-  const listenedLabel = stoppedEarly ? `${listenedSeconds}s (stopped early)` : `${listenedSeconds}s listened`;
+  const listenedLabel = stoppedEarly ? `${listenedSeconds}s (solved early)` : `${listenedSeconds}s listened`;
   let breakdown = `${listenedLabel} + ${roundedAnswerSeconds}s to answer`;
   if (wrongCount > 0) {
     breakdown += ` + ${wrongCount} wrong guess${wrongCount === 1 ? '' : 'es'} (${penalty}s)`;
   }
   el.resultBreakdown.textContent = breakdown;
+
+  el.scoreInfoDetail.classList.add('hidden');
+  if (stoppedEarly) {
+    const halfGap = listenedSeconds - earlyStopElapsedSeconds;
+    el.scoreInfoDetail.textContent = `${earlyStopElapsedSeconds}s to solve + ${halfGap}s, half the gap between your ${selectedDuration}s bet and when you solved it`;
+    el.scoreInfoBtn.classList.remove('hidden');
+  } else {
+    el.scoreInfoBtn.classList.add('hidden');
+  }
 
   el.albumSongName.textContent = currentSong.song;
   el.albumArtistName.textContent = currentSong.artist;
@@ -1335,6 +1393,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeHelp();
 
 el.playBtn.addEventListener('click', onPlayClick);
 el.earlyStopBtn.addEventListener('click', onEarlyStopClick);
+el.scoreInfoBtn.addEventListener('click', () => el.scoreInfoDetail.classList.toggle('hidden'));
 el.againBtn.addEventListener('click', () => startNewRound(false));
 
 audioEl.addEventListener('ended', () => {
@@ -1360,7 +1419,7 @@ const CATALOG_META = {
   '80s': {
     file: 'ttt-songs-80s-v1.json',
     label: '80s',
-    footerNote: 'Prototype build · 1,066 songs · 496 classic 80s artists · no leaderboard yet',
+    footerNote: 'Prototype build · 1,104 songs · 521 classic 80s artists · no leaderboard yet',
   },
 };
 let currentDecade = '70s';
