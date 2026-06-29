@@ -725,7 +725,7 @@
           <span id="decadeBadgeLabel">70s</span> <span class="decade-caret">&#9662;</span>
         </button>
         <div class="decade-dropdown hidden" id="decadeDropdown" role="listbox">
-          <button class="decade-option" type="button" role="option" disabled>60s <span class="decade-soon">Coming soon</span></button>
+          <button class="decade-option" type="button" role="option" data-decade="60s">60s</button>
           <button class="decade-option active" type="button" role="option" aria-selected="true" data-decade="70s">70s</button>
           <button class="decade-option" type="button" role="option" data-decade="80s">80s</button>
           <button class="decade-option" type="button" role="option" data-decade="90s">90s</button>
@@ -1403,6 +1403,11 @@ audioEl.addEventListener('ended', () => {
 // ---- Catalog loading: fetched at runtime so the HTML doesn't have to embed ----
 // ---- thousands of songs inline. Requires serving over http(s), not file://. ----
 const CATALOG_META = {
+  '60s': {
+    file: 'ttt-songs-60s-v1.json',
+    label: '60s',
+    footerNote: 'Prototype build · 1,162 songs · 587 classic 60s artists · no leaderboard yet',
+  },
   '70s': {
     file: 'ttt-songs-70s-v2.json',
     label: '70s',
