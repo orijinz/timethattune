@@ -1202,6 +1202,7 @@ function onPlayClick() {
   requestAnimationFrame(() => {
     el.progressFill.style.transition = `width ${selectedDuration}s linear`;
     el.progressFill.style.width = '100%';
+    el.earlyStopBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   });
   startStaffAnimation();
 
