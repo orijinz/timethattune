@@ -730,7 +730,7 @@
           <button class="decade-option" type="button" role="option" data-decade="80s">80s</button>
           <button class="decade-option" type="button" role="option" data-decade="90s">90s</button>
           <button class="decade-option" type="button" role="option" data-decade="2000s">2000s</button>
-          <button class="decade-option" type="button" role="option" disabled>2010s <span class="decade-soon">Coming soon</span></button>
+          <button class="decade-option" type="button" role="option" data-decade="2010s">2010s</button>
         </div>
       </div>
       <div class="meta-right">
@@ -1421,12 +1421,17 @@ const CATALOG_META = {
   '80s': {
     file: 'ttt-songs-80s-v1.json',
     label: '80s',
-    footerNote: 'Prototype build · 1,104 songs · 521 classic 80s artists · no leaderboard yet',
+    footerNote: 'Prototype build · 1,111 songs · 521 classic 80s artists · no leaderboard yet',
   },
   '90s': {
     file: 'ttt-songs-90s-v1.json',
     label: '90s',
-    footerNote: 'Prototype build · 1,093 songs · 608 classic 90s artists · no leaderboard yet',
+    footerNote: 'Prototype build · 1,097 songs · 611 classic 90s artists · no leaderboard yet',
+  },
+  '2010s': {
+    file: 'ttt-songs-2010s-v1.json',
+    label: '2010s',
+    footerNote: 'Prototype build · 1,132 songs · 703 classic 2010s artists · no leaderboard yet',
   },
 };
 let currentDecade = '70s';
