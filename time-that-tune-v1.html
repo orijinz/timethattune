@@ -742,7 +742,7 @@
     </div>
 
     <div class="artist-row">
-      <p class="artist-label">Today's artist</p>
+      <p class="artist-label" id="artistLabel">Today's artist</p>
       <h2 class="artist-name" id="artistName">&nbsp;</h2>
     </div>
 
@@ -813,13 +813,13 @@
   <div class="help-modal">
     <h3>How to Play</h3>
     <ol>
-      <li>You'll see an artist and a decade. Set the slider to the number of seconds you want to hear &mdash; your goal is to choose the fewest seconds you'll need to identify the song that's about to play.</li>
+      <li id="helpStep1">You'll see an artist and a decade. Set the slider to the number of seconds you want to hear &mdash; your goal is to choose the fewest seconds you'll need to identify the song that's about to play.</li>
       <li>Hit <code>Play</code>. The clip plays for exactly the time you choose, then stops. The song clip is not generally the beginning of the song, it is a preview of some part of the song.</li>
       <li>Know it already? Hit <code>Guess now &mdash; I know it!</code> to skip the rest of the clip. Your score becomes the average of your bet and how long you actually listened &mdash; so it's always worth stopping early once you're sure, but betting low and being right is still your best score.</li>
-      <li>Six song titles appear &mdash; one correct, five wrong. Pick the correct one.</li>
-      <li>Wrong picks get eliminated but cost you 15 seconds each. Keep guessing until you get the right answer.</li>
+      <li id="helpStep4">Six song titles appear &mdash; one correct, five wrong. Pick the correct one.</li>
+      <li>Wrong picks get eliminated but cost you 20 seconds each. Keep guessing until you get the right answer.</li>
     </ol>
-    <p>Your score is seconds listened (or, if you solved it early, the average of your bet and actual time) + seconds spent answering + 15s per wrong guess. Lower is better.</p>
+    <p>Your score is seconds listened (or, if you solved it early, the average of your bet and actual time) + seconds spent answering + 20s per wrong guess. Lower is better.</p>
     <button class="help-close-btn" id="helpCloseBtn" type="button">Got it</button>
   </div>
 </div>
@@ -830,6 +830,7 @@
 let SONGS = [];
 
 const el = {
+  artistLabel: document.getElementById('artistLabel'),
   artistName: document.getElementById('artistName'),
   puzzleMeta: document.getElementById('puzzleMeta'),
   durationRow: document.getElementById('durationRow'),
@@ -1190,6 +1191,13 @@ function startNewRound(useDailyPuzzle) {
   }
 
   el.artistName.textContent = currentSong.artist;
+  if (currentSong.decade === 'showtunes') {
+    el.artistLabel.textContent = "Today's show";
+  } else if (currentSong.decade === 'themes') {
+    el.artistLabel.textContent = "Today's category";
+  } else {
+    el.artistLabel.textContent = "Today's artist";
+  }
   el.durationLabel.textContent = `How fast can you name this ${currentSong.artist} song?`;
   el.optionsGrid.innerHTML = '';
   el.optionsGrid.classList.add('hidden');
@@ -1203,6 +1211,9 @@ function startNewRound(useDailyPuzzle) {
   el.playBtn.disabled = false;
   el.playBtn.textContent = 'Play';
   el.durationSlider.disabled = false;
+  selectedDuration = 15;
+  el.durationSlider.value = 15;
+  el.durationValue.textContent = '15s';
 
   audioEl.src = currentSong.preview_url;
   audioEl.load();
@@ -1301,7 +1312,7 @@ function finishRound(answerSeconds) {
   el.optionsGrid.querySelectorAll('button').forEach(b => { b.disabled = true; });
   el.answerTimer.classList.add('hidden');
   const roundedAnswerSeconds = Math.round(answerSeconds);
-  const penalty = wrongCount * 15;
+  const penalty = wrongCount * 20;
   const score = listenedSeconds + penalty + roundedAnswerSeconds;
   el.resultScore.textContent = score;
   const listenedLabel = stoppedEarly ? `${listenedSeconds}s (solved early)` : `${listenedSeconds}s listened`;
@@ -1420,7 +1431,21 @@ const helpBtn = document.getElementById('helpBtn');
 const helpOverlay = document.getElementById('helpOverlay');
 const helpCloseBtn = document.getElementById('helpCloseBtn');
 
-function openHelp() { helpOverlay.classList.remove('hidden'); }
+function openHelp() {
+  const step1 = document.getElementById('helpStep1');
+  const step4 = document.getElementById('helpStep4');
+  if (currentDecade === 'showtunes') {
+    step1.innerHTML = "You'll see a Broadway show name. Set the slider to the number of seconds you want to hear &mdash; your goal is to choose the fewest seconds you'll need to identify the song.";
+    step4.innerHTML = "Six song titles from that show appear &mdash; one correct, five wrong. Pick the correct one.";
+  } else if (currentDecade === 'themes') {
+    step1.innerHTML = "You'll see a genre and era (e.g. <em>80s TV Drama</em>). Set the slider to the number of seconds you want to hear &mdash; your goal is to choose the fewest seconds you'll need to identify the theme.";
+    step4.innerHTML = "Six show or movie titles appear &mdash; one correct, five wrong. Pick the one whose theme you just heard.";
+  } else {
+    step1.innerHTML = "You'll see an artist and a decade. Set the slider to the number of seconds you want to hear &mdash; your goal is to choose the fewest seconds you'll need to identify the song that's about to play.";
+    step4.innerHTML = "Six song titles appear &mdash; one correct, five wrong. Pick the correct one.";
+  }
+  helpOverlay.classList.remove('hidden');
+}
 function closeHelp() { helpOverlay.classList.add('hidden'); }
 
 helpBtn.addEventListener('click', openHelp);
