@@ -3568,5 +3568,26 @@
     "artist": "Taylor Swift",
     "decade": "2020s",
     "preview_url": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/4b/07/28/4b07285f-b50c-7aff-cb40-2d732256b703/mzaf_16739866530441939982.plus.aac.p.m4a"
+  },
+  {
+    "id": 511,
+    "song": "360",
+    "artist": "Charli XCX",
+    "decade": "2020s",
+    "preview_url": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/ee/24/4c/ee244cd0-a68a-64f1-c41a-fe08318d0b41/mzaf_16963438138883503449.plus.aac.p.m4a"
+  },
+  {
+    "id": 512,
+    "song": "Now and Then",
+    "artist": "The Beatles",
+    "decade": "2020s",
+    "preview_url": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/97/6c/6a/976c6a09-f3dc-5413-ae11-4ebd72c837f8/mzaf_8863456370462771026.plus.aac.p.m4a"
+  },
+  {
+    "id": 513,
+    "song": "The Subway",
+    "artist": "Chappell Roan",
+    "decade": "2020s",
+    "preview_url": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/99/30/63/993063c9-63b1-3ac4-b558-eb1561f3c7c1/mzaf_4724150376642718672.plus.aac.p.m4a"
   }
 ]
