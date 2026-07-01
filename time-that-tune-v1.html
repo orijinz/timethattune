@@ -732,6 +732,7 @@
           <button class="decade-option" type="button" role="option" data-decade="2000s">2000s</button>
           <button class="decade-option" type="button" role="option" data-decade="2010s">2010s</button>
           <button class="decade-option" type="button" role="option" data-decade="2020s">2020s</button>
+          <button class="decade-option" type="button" role="option" data-decade="showtunes">Showtunes</button>
         </div>
       </div>
       <div class="meta-right">
@@ -1077,21 +1078,36 @@ function seededShuffle(arr, seed) {
 }
 
 function buildDailyOrder() {
-  const order = seededShuffle(SONGS, 1337);
-  // Anti-cluster pass: nudge same-artist songs apart so the same artist doesn't
-  // land on two consecutive days.
-  for (let i = 1; i < order.length; i++) {
-    if (order[i].artist === order[i - 1].artist) {
-      for (let j = i + 1; j < order.length; j++) {
-        const nextArtist = order[i + 1] ? order[i + 1].artist : null;
-        if (order[j].artist !== order[i - 1].artist && order[j].artist !== nextArtist) {
-          [order[i], order[j]] = [order[j], order[i]];
-          break;
-        }
-      }
+  const rand = mulberry32(1337);
+
+  // Group songs by artist/show and shuffle each group for random internal ordering
+  const groups = new Map();
+  for (const song of SONGS) {
+    if (!groups.has(song.artist)) groups.set(song.artist, []);
+    groups.get(song.artist).push(song);
+  }
+
+  const total = SONGS.length;
+  const slots = new Array(total).fill(null);
+
+  // Place each group at evenly-spaced slots: gap = total / groupSize.
+  // Process largest groups first so they claim ideal slots;
+  // smaller groups fill in around them. Linear-probe resolves collisions.
+  const sorted = [...groups.values()]
+    .map(g => shuffleWith(g, rand))
+    .sort((a, b) => b.length - a.length);
+
+  for (const group of sorted) {
+    const gap = total / group.length;
+    const offset = Math.floor(rand() * gap);
+    for (let i = 0; i < group.length; i++) {
+      let slot = Math.round(offset + i * gap) % total;
+      while (slots[slot] !== null) slot = (slot + 1) % total;
+      slots[slot] = group[i];
     }
   }
-  return order;
+
+  return slots;
 }
 
 let DAILY_ORDER = [];
@@ -1112,9 +1128,32 @@ function getDailySong() {
 // player gets the identical distractor set AND grid order for that day's puzzle.
 function buildOptions(song, seed) {
   const rand = seed === undefined ? Math.random : mulberry32(seed);
+
+  // Themes: all 5 distractors must be same category (artist), year-filtered
+  if (song.decade === 'themes') {
+    let pool;
+    for (const window of [10, 25, Infinity]) {
+      pool = shuffleWith(SONGS.filter(s =>
+        s.id !== song.id &&
+        s.artist === song.artist &&
+        (window === Infinity || !s.year || !song.year || Math.abs(s.year - song.year) <= window)
+      ), rand);
+      if (pool.length >= 5) break;
+    }
+    return shuffleWith([song, ...pool.slice(0, 5)], rand);
+  }
+
   const sameArtist = shuffleWith(SONGS.filter(s => s.artist === song.artist && s.id !== song.id), rand).slice(0, 3);
   const usedArtists = new Set([song.artist, ...sameArtist.map(s => s.artist)]);
-  const otherPool = shuffleWith(SONGS.filter(s => !usedArtists.has(s.artist)), rand);
+  // For showtunes, keep distractors era-appropriate (±10 yr window, widen if pool too small)
+  let otherPool;
+  for (const window of [10, 25, Infinity]) {
+    otherPool = shuffleWith(SONGS.filter(s =>
+      !usedArtists.has(s.artist) &&
+      (window === Infinity || !s.year || !song.year || Math.abs(s.year - song.year) <= window)
+    ), rand);
+    if (otherPool.length >= 2) break;
+  }
   const others = [];
   for (const s of otherPool) {
     if (others.length >= 2) break;
@@ -1438,6 +1477,11 @@ const CATALOG_META = {
     file: 'ttt-songs-2020s-v1.json',
     label: '2020s',
     footerNote: 'Prototype build · 521 songs · 362 classic 2020s artists · no leaderboard yet',
+  },
+  'showtunes': {
+    file: 'ttt-songs-showtunes-v1.json',
+    label: 'Showtunes',
+    footerNote: 'Prototype build · 1,011 songs · 188 Broadway shows · no leaderboard yet',
   },
 };
 let currentDecade = '70s';
