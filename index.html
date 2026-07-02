@@ -1531,12 +1531,13 @@ function launchCelebration(btn, answerSeconds) {
   card.style.height = rect.height + 'px';
   document.body.appendChild(card);
 
-  // Animate to viewport center
+  // Animate to game card center
   requestAnimationFrame(() => requestAnimationFrame(() => {
     const w = Math.min(Math.max(rect.width, 200), 300);
     const h = Math.max(rect.height, 60);
-    card.style.left     = ((window.innerWidth  - w) / 2) + 'px';
-    card.style.top      = ((window.innerHeight - h) / 2) + 'px';
+    const shellRect = (document.querySelector('.app-shell') || document.body).getBoundingClientRect();
+    card.style.left     = (shellRect.left + (shellRect.width  - w) / 2) + 'px';
+    card.style.top      = (shellRect.top  + (shellRect.height - h) / 2) + 'px';
     card.style.width    = w + 'px';
     card.style.height   = h + 'px';
     card.style.fontSize = '1.15rem';
@@ -1558,27 +1559,34 @@ function launchCelebration(btn, answerSeconds) {
 
 function launchConfetti(score) {
   const elite = score <= 15, great = score <= 30;
-  const symbols = elite ? ['♬','★','♬','★','♫','★','♬']
-                : great ? ['♪','♫','♬','♩','♫','♪']
-                        : ['♪','♩','♫','♪','♩'];
+  const symbols = elite ? ['♬','★','♫','★','♬']
+                : great ? ['♪','♫','♬','♩','♫']
+                        : ['♪','♩','♫','♩'];
   const colors  = elite
-    ? ['#ffd700','#ffcc00','#fff7a0','#ffffff','#ffd700']
+    ? ['#ffd700','#ffcc00','#fff7a0','#ffd700']
     : ['rgba(0,168,255,0.9)','rgba(160,32,240,0.9)','rgba(0,206,209,0.9)'];
-  const count = elite ? 60 : great ? 45 : 30;
+  const count = elite ? 40 : great ? 28 : 18;
 
   const container = document.createElement('div');
   container.className = 'confetti-container';
   document.body.appendChild(container);
 
+  // Constrain confetti to game card bounds
+  const shell = document.querySelector('.app-shell');
+  const shellRect = shell ? shell.getBoundingClientRect() : { left: 0, width: window.innerWidth };
+  const xMin = shellRect.left;
+  const xMax = shellRect.left + shellRect.width;
+
   for (let i = 0; i < count; i++) {
     const piece = document.createElement('span');
     piece.className = 'confetti-piece';
     piece.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-    const size  = 14 + Math.random() * 22;
-    const delay = Math.random() * 1.4;
-    const dur   = 1.6 + Math.random() * 1.4;
+    const size  = 16 + Math.random() * 18;
+    const delay = Math.random() * 1.2;
+    const dur   = 1.8 + Math.random() * 1.2;
     const color = colors[Math.floor(Math.random() * colors.length)];
-    piece.style.cssText = `left:${Math.random()*100}%;font-size:${size}px;color:${color};animation-duration:${dur}s;animation-delay:${delay}s;`;
+    const xPos  = xMin + Math.random() * (xMax - xMin);
+    piece.style.cssText = `left:${xPos}px;font-size:${size}px;color:${color};animation-duration:${dur}s;animation-delay:${delay}s;`;
     container.appendChild(piece);
   }
 }
