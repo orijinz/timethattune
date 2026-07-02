@@ -1089,8 +1089,9 @@ function buildDailyOrder() {
   // Group songs by artist/show and shuffle each group for random internal ordering
   const groups = new Map();
   for (const song of SONGS) {
-    if (!groups.has(song.artist)) groups.set(song.artist, []);
-    groups.get(song.artist).push(song);
+    const key = song.family || song.artist;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(song);
   }
 
   const total = SONGS.length;
