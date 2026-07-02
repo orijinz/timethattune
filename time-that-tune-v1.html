@@ -717,78 +717,6 @@
     }
   }
 
-  /* ── Correct-answer celebration ──────────────────────── */
-  .celebration {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    pointer-events: none;
-    z-index: 300;
-    opacity: 0;
-    transition: opacity 0.15s ease;
-  }
-  .celebration.show { opacity: 1; }
-  .celebration.hide { opacity: 0; transition: opacity 0.45s ease; }
-
-  /* Staff */
-  .cel-staff {
-    position: relative;
-    width: 180px;
-    height: 56px;
-  }
-  .cel-staff-line {
-    position: absolute;
-    left: 0; right: 0;
-    height: 1.5px;
-    background: rgba(248,250,252,0.18);
-    border-radius: 1px;
-  }
-  .cel-note {
-    position: absolute;
-    width: 13px;
-    height: 10px;
-    border-radius: 50%;
-    transform: scale(0);
-    animation: celNoteIn 0.22s ease-out forwards;
-  }
-  .cel-note::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    bottom: 9px;
-    width: 1.5px;
-    height: 22px;
-    background: currentColor;
-    border-radius: 1px;
-    opacity: 0.75;
-  }
-  @keyframes celNoteIn {
-    0%   { transform: scale(0); opacity: 0; }
-    65%  { transform: scale(1.25); opacity: 1; }
-    100% { transform: scale(1); opacity: 1; }
-  }
-
-  /* Equalizer */
-  .cel-eq {
-    display: flex;
-    align-items: flex-end;
-    gap: 5px;
-    height: 52px;
-  }
-  .cel-eq-bar {
-    width: 8px;
-    border-radius: 4px 4px 2px 2px;
-    transform-origin: bottom center;
-    animation: celEqDance var(--eq-dur, 0.38s) ease-in-out infinite alternate;
-  }
-  @keyframes celEqDance {
-    from { transform: scaleY(0.18); }
-    to   { transform: scaleY(1); }
-  }
 </style>
 </head>
 <body>
@@ -1396,7 +1324,6 @@ function finishRound(answerSeconds) {
   const roundedAnswerSeconds = Math.round(answerSeconds);
   const penalty = wrongCount * 20;
   const score = listenedSeconds + penalty + roundedAnswerSeconds;
-  playCelebration(score);
   el.resultScore.textContent = score;
   const listenedLabel = stoppedEarly ? `${listenedSeconds}s (solved early)` : `${listenedSeconds}s listened`;
   let breakdown = `${listenedLabel} + ${roundedAnswerSeconds}s to answer`;
@@ -1623,114 +1550,6 @@ async function init() {
 
 init();
 
-// ── Correct-answer celebration ────────────────────────────────────────────────
-
-function playCelebration(score) {
-  const tier = score <= 35 ? 'tada' : 'chord';
-  celebrationSound(tier);
-  celebrationVisual(tier);
-}
-
-function celebrationSound(tier) {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const t = ctx.currentTime;
-
-    function tone(freq, start, dur, vol) {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.type = 'triangle';
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0, start);
-      gain.gain.linearRampToValueAtTime(vol, start + 0.012);
-      gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
-      osc.start(start);
-      osc.stop(start + dur + 0.05);
-    }
-
-    if (tier === 'tada') {
-      // G7 (short hit) → Cmaj7 (held) — classic V7→I resolution
-      [392, 494, 587, 698].forEach(f => tone(f, t,        0.20, 0.11));
-      [523, 659, 784, 988].forEach(f => tone(f, t + 0.20, 0.95, 0.15));
-    } else {
-      // Single Cmaj7 chord hit
-      [523, 659, 784, 988].forEach(f => tone(f, t, 0.80, 0.14));
-    }
-
-    setTimeout(() => ctx.close(), 2200);
-  } catch(e) {}
-}
-
-function celebrationVisual(tier) {
-  const wrap = document.createElement('div');
-  wrap.className = 'celebration';
-
-  if (tier === 'tada') {
-    // Music staff — notes represent G7 (left) resolving to Cmaj (right)
-    // Treble clef lines top→bottom: F5 D5 B4 G4 E4 (tops at 3,13,23,33,43px)
-    // Note top = line/space top minus 5 (to center 10px head on pitch)
-    const staff = document.createElement('div');
-    staff.className = 'cel-staff';
-
-    [3, 13, 23, 33, 43].forEach(top => {
-      const line = document.createElement('div');
-      line.className = 'cel-staff-line';
-      line.style.top = top + 'px';
-      staff.appendChild(line);
-    });
-
-    // G7 cluster left: G4(33→28), B4(23→18), D5(13→8), F5(3→-2)
-    // Cmaj cluster right: C5(space=8→3), E5(space=−2→need ledger? skip), G5(above staff)
-    // Keeping everything on the visible staff: use G4, B4, D5 left; C5, E5, G4 right
-    const notes = [
-      { left: 14, top: 28, color: '#00A8FF', delay: 0    },  // G4 (ta chord)
-      { left: 32, top: 18, color: '#A020F0', delay: 0.07 },  // B4
-      { left: 50, top:  8, color: '#00CED1', delay: 0.13 },  // D5
-      { left: 110, top: 13, color: '#00A8FF', delay: 0.22 }, // C5 (da chord)
-      { left: 128, top:  3, color: '#00CED1', delay: 0.28 }, // E5
-      { left: 146, top: 18, color: '#A020F0', delay: 0.34 }, // B4 (octave color echo)
-    ];
-    notes.forEach(n => {
-      const note = document.createElement('div');
-      note.className = 'cel-note';
-      note.style.cssText = `left:${n.left}px;top:${n.top}px;background:${n.color};color:${n.color};animation-delay:${n.delay}s`;
-      staff.appendChild(note);
-    });
-    wrap.appendChild(staff);
-  }
-
-  // Equalizer bars — 7 bars, blue/purple/teal cycling, staggered pulses
-  const eq = document.createElement('div');
-  eq.className = 'cel-eq';
-  const barDefs = [
-    { color: '#00A8FF', h: 52, delay: 0.00, dur: 0.34 },
-    { color: '#A020F0', h: 36, delay: 0.09, dur: 0.40 },
-    { color: '#00CED1', h: 48, delay: 0.05, dur: 0.30 },
-    { color: '#00A8FF', h: 28, delay: 0.13, dur: 0.44 },
-    { color: '#A020F0', h: 52, delay: 0.03, dur: 0.36 },
-    { color: '#00CED1', h: 40, delay: 0.08, dur: 0.38 },
-    { color: '#00A8FF', h: 32, delay: 0.11, dur: 0.32 },
-  ];
-  barDefs.forEach(b => {
-    const bar = document.createElement('div');
-    bar.className = 'cel-eq-bar';
-    bar.style.cssText = `background:${b.color};height:${b.h}px;animation-delay:${b.delay}s;--eq-dur:${b.dur}s`;
-    eq.appendChild(bar);
-  });
-  wrap.appendChild(eq);
-
-  document.body.appendChild(wrap);
-  requestAnimationFrame(() => {
-    wrap.classList.add('show');
-    const duration = tier === 'tada' ? 1500 : 1000;
-    setTimeout(() => {
-      wrap.classList.replace('show', 'hide');
-      setTimeout(() => wrap.remove(), 500);
-    }, duration);
-  });
-}
 </script>
 
 </body>
