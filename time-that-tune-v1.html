@@ -482,12 +482,16 @@
     transition: background 150ms var(--ease), border-color 150ms var(--ease), opacity 150ms var(--ease), transform 150ms var(--ease);
   }
 
-  .option-btn:hover:not(:disabled) {
+  .option-btn:focus {
+    outline: none;
+  }
+
+  .option-btn:hover:not(:disabled):not(.correct):not(.eliminated) {
     border-color: var(--accent-blue);
     background: rgba(0,168,255,0.08);
   }
 
-  .option-btn:active:not(:disabled) {
+  .option-btn:active:not(:disabled):not(.correct):not(.eliminated) {
     transform: scale(0.98);
   }
 
@@ -733,6 +737,7 @@
           <button class="decade-option" type="button" role="option" data-decade="2010s">2010s</button>
           <button class="decade-option" type="button" role="option" data-decade="2020s">2020s</button>
           <button class="decade-option" type="button" role="option" data-decade="showtunes">Showtunes</button>
+          <button class="decade-option" type="button" role="option" data-decade="themes">TV/Movie Themes</button>
         </div>
       </div>
       <div class="meta-right">
@@ -1190,12 +1195,15 @@ function startNewRound(useDailyPuzzle) {
     el.puzzleMeta.textContent = 'Practice round';
   }
 
-  el.artistName.textContent = currentSong.artist;
-  if (currentSong.decade === 'showtunes') {
-    el.artistLabel.textContent = "Today's show";
-  } else if (currentSong.decade === 'themes') {
+  if (currentSong.decade === 'themes') {
+    const era = Math.floor(currentSong.year / 10) * 10 + 's';
+    el.artistName.textContent = era + ' ' + currentSong.artist;
     el.artistLabel.textContent = "Today's category";
+  } else if (currentSong.decade === 'showtunes') {
+    el.artistName.textContent = currentSong.artist;
+    el.artistLabel.textContent = "Today's show";
   } else {
+    el.artistName.textContent = currentSong.artist;
     el.artistLabel.textContent = "Today's artist";
   }
   el.durationLabel.textContent = `How fast can you name this ${currentSong.artist} song?`;
@@ -1507,6 +1515,11 @@ const CATALOG_META = {
     file: 'ttt-songs-showtunes-v1.json',
     label: 'Showtunes',
     footerNote: 'Prototype build · 1,011 songs · 188 Broadway shows · no leaderboard yet',
+  },
+  'themes': {
+    file: 'ttt-songs-themes-v1.json',
+    label: 'Themes',
+    footerNote: 'Prototype build · TV & Movie Themes · 14 genre categories · no leaderboard yet',
   },
 };
 let currentDecade = '70s';
