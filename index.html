@@ -635,9 +635,9 @@
     animation: confetti-fall linear forwards;
   }
   @keyframes confetti-fall {
-    0%   { transform: translateY(-60px) rotate(0deg);   opacity: 1; }
-    80%  { opacity: 0.9; }
-    100% { transform: translateY(105vh) rotate(600deg); opacity: 0; }
+    0%   { transform: translateY(0) rotate(0deg);    opacity: 1; }
+    70%  { opacity: 0.85; }
+    100% { transform: translateY(440px) rotate(540deg); opacity: 0; }
   }
 
   .result-panel {
@@ -1503,54 +1503,51 @@ function revealOptions() {
 }
 
 function launchCelebration(btn, answerSeconds) {
-  // Disable everything and hide timer
   el.optionsGrid.querySelectorAll('button').forEach(b => { b.disabled = true; });
   el.answerTimer.classList.add('hidden');
 
-  // Fade out all non-correct buttons
-  el.optionsGrid.querySelectorAll('.option-btn:not(.correct)').forEach(b => {
-    b.style.transition = 'opacity 0.35s ease';
-  });
+  // Fade entire options grid so the original buttons don't show while card flies
+  el.optionsGrid.style.transition = 'opacity 0.25s ease';
+  el.optionsGrid.style.pointerEvents = 'none';
   requestAnimationFrame(() => requestAnimationFrame(() => {
-    el.optionsGrid.querySelectorAll('.option-btn:not(.correct)').forEach(b => {
-      b.style.opacity = '0';
-    });
+    el.optionsGrid.style.opacity = '0';
   }));
 
-  // Score tier for confetti
   const approxScore = listenedSeconds + wrongCount * 20 + Math.round(answerSeconds);
 
-  // Clone correct button as fixed overlay card
+  // Clone correct button as fixed overlay card starting at button position
   const rect = btn.getBoundingClientRect();
   const card = document.createElement('div');
   card.className = 'celebration-card';
-  card.textContent = btn.textContent + ' ✓';
+  card.textContent = btn.textContent.replace(' ✓', '') + ' ✓';
   card.style.left   = rect.left   + 'px';
   card.style.top    = rect.top    + 'px';
   card.style.width  = rect.width  + 'px';
   card.style.height = rect.height + 'px';
   document.body.appendChild(card);
 
-  // Animate to game card center
+  // Fly to upper-center of game card
   requestAnimationFrame(() => requestAnimationFrame(() => {
     const w = Math.min(Math.max(rect.width, 200), 300);
     const h = Math.max(rect.height, 60);
     const shellRect = (document.querySelector('.app-shell') || document.body).getBoundingClientRect();
-    card.style.left     = (shellRect.left + (shellRect.width  - w) / 2) + 'px';
-    card.style.top      = (shellRect.top  + (shellRect.height - h) / 2) + 'px';
+    card.style.left     = (shellRect.left + (shellRect.width - w) / 2) + 'px';
+    card.style.top      = (shellRect.top  + shellRect.height * 0.38) + 'px';
     card.style.width    = w + 'px';
     card.style.height   = h + 'px';
-    card.style.fontSize = '1.15rem';
+    card.style.fontSize = '1.1rem';
   }));
 
   launchConfetti(approxScore);
 
-  // After celebration, clean up and show result
   setTimeout(() => {
     card.style.opacity = '0';
     setTimeout(() => {
       card.remove();
       document.querySelector('.confetti-container')?.remove();
+      el.optionsGrid.style.transition = '';
+      el.optionsGrid.style.opacity = '';
+      el.optionsGrid.style.pointerEvents = '';
       el.optionsGrid.classList.add('hidden');
       finishRound(answerSeconds);
     }, 320);
@@ -1573,9 +1570,7 @@ function launchConfetti(score) {
 
   // Constrain confetti to game card bounds
   const shell = document.querySelector('.app-shell');
-  const shellRect = shell ? shell.getBoundingClientRect() : { left: 0, width: window.innerWidth };
-  const xMin = shellRect.left;
-  const xMax = shellRect.left + shellRect.width;
+  const r = shell ? shell.getBoundingClientRect() : { left: 0, top: 0, width: window.innerWidth, height: 400 };
 
   for (let i = 0; i < count; i++) {
     const piece = document.createElement('span');
@@ -1585,8 +1580,8 @@ function launchConfetti(score) {
     const delay = Math.random() * 1.2;
     const dur   = 1.8 + Math.random() * 1.2;
     const color = colors[Math.floor(Math.random() * colors.length)];
-    const xPos  = xMin + Math.random() * (xMax - xMin);
-    piece.style.cssText = `left:${xPos}px;font-size:${size}px;color:${color};animation-duration:${dur}s;animation-delay:${delay}s;`;
+    const xPos  = r.left + Math.random() * r.width;
+    piece.style.cssText = `left:${xPos}px;top:${r.top}px;font-size:${size}px;color:${color};animation-duration:${dur}s;animation-delay:${delay}s;`;
     container.appendChild(piece);
   }
 }
