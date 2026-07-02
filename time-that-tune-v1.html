@@ -811,6 +811,52 @@
     color: var(--accent-teal);
   }
 
+  .share-btn {
+    width: 100%;
+    height: 44px;
+    margin-top: 16px;
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 150ms var(--ease), color 150ms var(--ease);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .share-btn:hover {
+    border-color: var(--accent-teal);
+    color: var(--accent-teal);
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(12px);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 10px 20px;
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+    font-weight: 500;
+    opacity: 0;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    pointer-events: none;
+    z-index: 300;
+    white-space: nowrap;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
   .again-btn {
     width: 100%;
     height: 48px;
@@ -936,12 +982,17 @@
         <a id="appleLink" href="#" target="_blank" rel="noopener">Apple Music</a>
       </div>
       <p class="stats-row" id="statsRow"></p>
+      <button class="share-btn" id="shareBtn" onclick="shareResult()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Share My Score
+      </button>
       <button class="again-btn" id="againBtn">Play Another Song</button>
     </div>
   </div>
 
   <p class="footer-note" id="footerNote">Prototype build &middot; 1,838 songs &middot; 570 classic 70s artists &middot; no leaderboard yet</p>
 </div>
+<div class="toast" id="toast"></div>
 
 <div class="help-overlay hidden" id="helpOverlay">
   <div class="help-modal">
@@ -1628,6 +1679,38 @@ function onOptionClick(opt, btn) {
     wrongCount++;
     setTimeout(() => btn.classList.add('eliminated-fade'), 800);
   }
+}
+
+let toastTimer;
+function showToast(msg, duration = 2400) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), duration);
+}
+
+function shareResult() {
+  const score = parseInt(el.resultScore.textContent, 10);
+  const tier  = score <= 15 ? 'Elite ⭐' : score <= 30 ? 'Great 🎯' : 'Good 👍';
+  const label = el.artistLabel.textContent;   // "Today's artist" / "Today's show" / "Today's category"
+  const name  = el.artistName.textContent;
+  const wrongLine = wrongCount > 0
+    ? `\n❌ ${wrongCount} wrong guess${wrongCount > 1 ? 'es' : ''} (+${wrongCount * 20}s penalty)`
+    : '';
+
+  const text = [
+    'Time That Tune! 🎵',
+    `${label}: ${name}`,
+    `🎵 "${currentSong.title}"`,
+    `⏱️ Score: ${score}s — ${tier}${wrongLine}`,
+    '',
+    'timethattune.com'
+  ].join('\n');
+
+  navigator.clipboard.writeText(text)
+    .then(() => showToast('Score copied to clipboard!'))
+    .catch(() => showToast('Copy failed — try selecting the text manually'));
 }
 
 function finishRound(answerSeconds) {
