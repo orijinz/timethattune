@@ -1,0 +1,1686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Time That Tune! — v1 Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-app: #0A0F1C;
+    --bg-card: #0E162B;
+    --bg-elevated: #111827;
+    --surface-dim: #1A2238;
+    --border-color: #243050;
+    --text-primary: #F8FAFC;
+    --text-secondary: rgba(248,250,252,0.65);
+    --text-tertiary: rgba(248,250,252,0.4);
+    --accent-blue: #00A8FF;
+    --accent-purple: #A020F0;
+    --accent-teal: #00CED1;
+    --success: #22C55E;
+    --error: #EF4444;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-full: 9999px;
+    --glow-blue: 0 0 12px rgba(0,168,255,0.6), 0 0 30px rgba(0,168,255,0.25);
+    --glow-teal: 0 0 12px rgba(0,206,209,0.6), 0 0 30px rgba(0,206,209,0.25);
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(ellipse at top, #1A2238 0%, #0A0F1C 70%);
+    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .app-shell {
+    width: 100%;
+    max-width: 380px;
+  }
+
+  .logo-img {
+    display: block;
+    width: 332px;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto 8px;
+  }
+
+  .stats-row {
+    text-align: center;
+    margin: 16px 0 0;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+  }
+
+  .game-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: 20px 24px 32px;
+  }
+
+  .meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .decade-select {
+    position: relative;
+  }
+
+  .decade-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px 5px 12px;
+    border: 1px solid rgba(0,206,209,0.4);
+    border-radius: var(--radius-full);
+    background: rgba(0,206,209,0.15);
+    color: var(--accent-teal);
+    font-family: inherit;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+  }
+
+  .decade-caret {
+    font-size: 0.9rem;
+    line-height: 1;
+    font-weight: 700;
+    transition: transform 150ms var(--ease);
+  }
+
+  .decade-select.open .decade-caret {
+    transform: rotate(180deg);
+  }
+
+  .decade-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 10;
+    min-width: 190px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 6px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+  }
+
+  .decade-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 8px 10px;
+    border: none;
+    background: none;
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .decade-option:hover:not(:disabled) {
+    background: rgba(255,255,255,0.06);
+  }
+
+  .decade-option.active {
+    color: var(--accent-teal);
+  }
+
+  .decade-option:disabled {
+    color: var(--text-tertiary);
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  .decade-soon {
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text-tertiary);
+  }
+
+  .puzzle-meta {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    letter-spacing: 0.04em;
+    opacity: 0.75;
+  }
+
+  .meta-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .help-btn {
+    flex: 0 0 auto;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background: var(--surface-dim);
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 150ms var(--ease), color 150ms var(--ease);
+  }
+
+  .help-btn:hover {
+    border-color: var(--accent-teal);
+    color: var(--accent-teal);
+  }
+
+  .help-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .help-modal {
+    width: 100%;
+    max-width: 360px;
+    max-height: 82vh;
+    overflow-y: auto;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: 20px 20px 24px;
+  }
+
+  .help-logo-wrap {
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .help-logo-wrap img {
+    width: 110px;
+    height: auto;
+  }
+
+  .help-section {
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .help-section:last-of-type { border-bottom: none; margin-bottom: 0; }
+
+  .help-section-head {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 7px;
+  }
+  .help-section-head img, .help-section-head svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .help-section-head strong { font-size: 0.875rem; color: var(--text-primary); font-weight: 700; }
+
+  .help-section p {
+    margin: 0 0 6px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .help-section p:last-child { margin-bottom: 0; }
+
+  .help-section ul {
+    margin: 0 0 6px;
+    padding: 0;
+    list-style: none;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .help-section ul li {
+    padding-left: 10px;
+    position: relative;
+    margin-bottom: 3px;
+  }
+  .help-section ul li::before { content: '·'; position: absolute; left: 0; }
+
+  /* Option buttons demo */
+  .help-opts-demo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    margin: 7px 0;
+  }
+  .help-opt-demo {
+    background: var(--surface-dim);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 5px 6px;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    text-align: center;
+    line-height: 1.3;
+  }
+  .help-opt-demo.correct {
+    background: rgba(34,197,94,0.15);
+    border-color: var(--success);
+    color: var(--success);
+    font-weight: 700;
+  }
+  .help-opt-demo.wrong {
+    background: rgba(239,68,68,0.1);
+    border-color: var(--error);
+    color: rgba(239,68,68,0.5);
+    opacity: 0.5;
+  }
+
+  /* Guess Now button demo */
+  .help-guess-demo {
+    display: block;
+    width: 100%;
+    padding: 7px 12px;
+    margin: 7px 0;
+    border: 1px solid var(--accent-teal);
+    border-radius: var(--radius-full);
+    background: rgba(0,206,209,0.08);
+    color: var(--accent-teal);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+    pointer-events: none;
+    box-sizing: border-box;
+  }
+
+  /* Score rows */
+  .help-score-rows {
+    margin: 6px 0 0;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+  .help-score-row { display: flex; gap: 6px; }
+  .help-score-op { color: var(--accent-blue); font-weight: 700; min-width: 10px; }
+
+  .help-modal code {
+    color: var(--accent-teal);
+    font-weight: 600;
+  }
+
+  .help-close-btn {
+    width: 100%;
+    height: 44px;
+    border: none;
+    border-radius: var(--radius-full);
+    background: linear-gradient(135deg, #00A8FF, #A020F0);
+    color: #FFFFFF;
+    font-family: inherit;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .artist-row {
+    margin: 16px 0 28px;
+    text-align: center;
+  }
+
+  .artist-label {
+    margin: 0 0 4px;
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .artist-name {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .duration-row {
+    margin-bottom: 28px;
+  }
+
+  .duration-label {
+    margin: 0 0 8px;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+
+  .duration-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 85%;
+    margin: 0 auto;
+  }
+
+  .duration-value {
+    flex: 0 0 auto;
+    min-width: 38px;
+    text-align: right;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent-teal);
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    display: block;
+    flex: 1;
+    min-width: 0;
+    height: 8px;
+    border-radius: var(--radius-full);
+    background: linear-gradient(135deg, #00A8FF, #00CED1);
+    outline: none;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #F8FAFC;
+    border: 3px solid var(--accent-blue);
+    cursor: pointer;
+    box-shadow: var(--glow-blue);
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #F8FAFC;
+    border: 3px solid var(--accent-blue);
+    cursor: pointer;
+    box-shadow: var(--glow-blue);
+  }
+
+  input[type="range"]:disabled {
+    opacity: 0.5;
+  }
+
+  .play-btn {
+    display: block;
+    width: 85%;
+    margin: 0 auto;
+    height: 52px;
+    border: none;
+    border-radius: var(--radius-full);
+    background: linear-gradient(135deg, #00A8FF, #A020F0);
+    color: #FFFFFF;
+    font-family: inherit;
+    font-size: 1.125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 150ms var(--ease), box-shadow 150ms var(--ease), opacity 150ms var(--ease);
+  }
+
+  .play-btn:hover:not(:disabled) {
+    box-shadow: var(--glow-blue);
+  }
+
+  .play-btn:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  .play-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .progress-wrap {
+    margin-top: 20px;
+  }
+
+  .staff-visual {
+    position: relative;
+    height: 72px;
+    margin-bottom: 12px;
+  }
+
+  .staff-line {
+    position: absolute;
+    left: 4%;
+    right: 4%;
+    height: 1px;
+    background: rgba(248,250,252,0.15);
+  }
+
+  .staff-note {
+    position: absolute;
+    height: 32px;
+    width: auto;
+    transform: translate(-50%, -50%);
+    top: 50%;
+    filter: drop-shadow(0 0 6px currentColor);
+  }
+
+  .note-blue { color: rgba(0,168,255,0.7); }
+  .note-purple { color: rgba(160,32,240,0.7); }
+  .note-teal { color: rgba(0,206,209,0.7); }
+
+  .answer-timer {
+    text-align: center;
+    margin: 4px 0 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--accent-purple);
+  }
+
+  .progress-track {
+    height: 8px;
+    border-radius: var(--radius-full);
+    background: rgba(255,255,255,0.08);
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: var(--radius-full);
+    background: linear-gradient(135deg, #00A8FF, #00CED1);
+    box-shadow: var(--glow-teal);
+  }
+
+  .progress-caption {
+    margin: 8px 0 0;
+    text-align: center;
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+  }
+
+  .early-stop-btn {
+    display: block;
+    margin: 12px auto 0;
+    padding: 8px 18px;
+    border: 1.5px solid var(--accent-teal);
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: var(--accent-teal);
+    font-family: inherit;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0,206,209,0.25);
+    transition: transform 150ms var(--ease), box-shadow 150ms var(--ease);
+  }
+
+  .early-stop-btn:hover {
+    box-shadow: var(--glow-teal);
+  }
+
+  .early-stop-btn:active {
+    transform: scale(0.97);
+  }
+
+  .options-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .option-btn {
+    min-height: 56px;
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    background: var(--surface-dim);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 150ms var(--ease), border-color 150ms var(--ease), opacity 150ms var(--ease), transform 150ms var(--ease);
+  }
+
+  .option-btn:focus {
+    outline: none;
+  }
+
+  .option-btn:hover:not(:disabled):not(.correct):not(.eliminated) {
+    border-color: var(--accent-blue);
+    background: rgba(0,168,255,0.08);
+  }
+
+  .option-btn:active:not(:disabled):not(.correct):not(.eliminated) {
+    transform: scale(0.98);
+  }
+
+  .option-btn.correct {
+    background: rgba(34,197,94,0.15);
+    border-color: var(--success);
+    color: var(--success);
+    font-weight: 700;
+  }
+
+  .option-btn.eliminated {
+    background: rgba(239,68,68,0.1);
+    border-color: var(--error);
+    color: rgba(239,68,68,0.6);
+    opacity: 0.6;
+    transition: opacity 0.4s ease;
+  }
+  .option-btn.eliminated-fade {
+    opacity: 0;
+  }
+
+  .option-btn:disabled {
+    cursor: not-allowed;
+  }
+
+  .result-panel {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+  }
+
+  .result-score-label {
+    margin: 0 0 4px;
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .result-score {
+    margin: 0;
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #00A8FF, #A020F0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .result-breakdown-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin: 6px 0 16px;
+  }
+
+  .result-breakdown {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+
+  .score-info-btn {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background: var(--surface-dim);
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 0.625rem;
+    font-weight: 700;
+    font-style: italic;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 150ms var(--ease), color 150ms var(--ease);
+  }
+
+  .score-info-btn:hover {
+    border-color: var(--accent-teal);
+    color: var(--accent-teal);
+  }
+
+  .score-info-detail {
+    margin: -10px 0 16px;
+    text-align: center;
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+  }
+
+  .album-player {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 0 0 16px;
+    padding: 10px;
+    border-radius: var(--radius-lg);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    text-align: left;
+  }
+
+  .album-art-wrap {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    flex: 0 0 56px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: linear-gradient(135deg, #00A8FF, #A020F0);
+  }
+
+  .album-art {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 200ms var(--ease);
+  }
+
+  .album-art.loaded {
+    opacity: 1;
+  }
+
+  .album-art-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: rgba(255,255,255,0.85);
+  }
+
+  .album-meta {
+    min-width: 0;
+  }
+
+  .album-song {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .album-artist {
+    margin: 2px 0 0;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .listen-links {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .listen-links a {
+    flex: 1;
+    max-width: 160px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-color);
+    background: var(--surface-dim);
+    color: var(--text-secondary);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: border-color 150ms var(--ease), color 150ms var(--ease);
+  }
+
+  .listen-links a:hover {
+    border-color: var(--accent-teal);
+    color: var(--accent-teal);
+  }
+
+  .again-btn {
+    width: 100%;
+    height: 48px;
+    margin-top: 20px;
+    border: 1.5px solid var(--accent-blue);
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: var(--accent-blue);
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 150ms var(--ease);
+  }
+
+  .again-btn:hover {
+    background: rgba(0,168,255,0.08);
+  }
+
+  .hidden { display: none !important; }
+
+  .footer-note {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <div class="game-card">
+    <img class="logo-img" src="logo-v3-black.png" alt="Time That Tune!">
+    <div class="meta-row">
+      <div class="decade-select" id="decadeSelect">
+        <button class="decade-badge" id="decadeBadge" type="button" aria-haspopup="listbox" aria-expanded="false">
+          <span id="decadeBadgeLabel">70s</span> <span class="decade-caret">&#9662;</span>
+        </button>
+        <div class="decade-dropdown hidden" id="decadeDropdown" role="listbox">
+          <button class="decade-option" type="button" role="option" data-decade="60s">60s</button>
+          <button class="decade-option active" type="button" role="option" aria-selected="true" data-decade="70s">70s</button>
+          <button class="decade-option" type="button" role="option" data-decade="80s">80s</button>
+          <button class="decade-option" type="button" role="option" data-decade="90s">90s</button>
+          <button class="decade-option" type="button" role="option" data-decade="2000s">2000s</button>
+          <button class="decade-option" type="button" role="option" data-decade="2010s">2010s</button>
+          <button class="decade-option" type="button" role="option" data-decade="2020s">2020s</button>
+          <button class="decade-option" type="button" role="option" data-decade="showtunes">Showtunes</button>
+          <button class="decade-option" type="button" role="option" data-decade="themes">TV/Movie Themes</button>
+        </div>
+      </div>
+      <div class="meta-right">
+        <span class="puzzle-meta" id="puzzleMeta"></span>
+        <button class="help-btn" id="helpBtn" type="button" aria-label="How to play">?</button>
+      </div>
+    </div>
+
+    <div class="artist-row">
+      <p class="artist-label" id="artistLabel">Today's artist</p>
+      <h2 class="artist-name" id="artistName">&nbsp;</h2>
+    </div>
+
+    <div class="duration-row" id="durationRow">
+      <p class="duration-label" id="durationLabel">How fast can you name this song?</p>
+      <div class="duration-slider-row">
+        <input type="range" id="durationSlider" min="3" max="30" step="1" value="15">
+        <span class="duration-value" id="durationValue">15s</span>
+      </div>
+    </div>
+
+    <button class="play-btn" id="playBtn">Play</button>
+
+    <div class="progress-wrap hidden" id="progressWrap">
+      <div class="staff-visual" id="staffVisual">
+        <div class="staff-line" style="top:6px"></div>
+        <div class="staff-line" style="top:26px"></div>
+        <div class="staff-line" style="top:46px"></div>
+        <div class="staff-line" style="top:66px"></div>
+        <svg class="staff-note note-blue" style="left:8%" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+        <svg class="staff-note note-purple" style="left:24%" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+        <svg class="staff-note note-teal" style="left:40%" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+        <svg class="staff-note note-blue" style="left:58%" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+        <svg class="staff-note note-purple" style="left:74%" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+        <svg class="staff-note note-teal" style="left:90%" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <p class="progress-caption" id="progressCaption">Listening…</p>
+      <button class="early-stop-btn" id="earlyStopBtn" type="button">Guess now — I know it!</button>
+    </div>
+
+    <div class="options-grid hidden" id="optionsGrid"></div>
+    <p class="answer-timer hidden" id="answerTimer"></p>
+
+    <div class="result-panel hidden" id="resultPanel">
+      <p class="result-score-label">Your score</p>
+      <p class="result-score" id="resultScore">0</p>
+      <div class="result-breakdown-row">
+        <p class="result-breakdown" id="resultBreakdown"></p>
+        <button class="score-info-btn hidden" id="scoreInfoBtn" type="button" aria-label="How this score was calculated">i</button>
+      </div>
+      <p class="score-info-detail hidden" id="scoreInfoDetail"></p>
+      <div class="album-player" id="albumPlayer">
+        <div class="album-art-wrap">
+          <img class="album-art" id="albumArt" alt="">
+          <div class="album-art-placeholder" id="albumArtPlaceholder">&#9834;</div>
+        </div>
+        <div class="album-meta">
+          <p class="album-song" id="albumSongName"></p>
+          <p class="album-artist" id="albumArtistName"></p>
+        </div>
+      </div>
+      <div class="listen-links">
+        <a id="spotifyLink" href="#" target="_blank" rel="noopener">Listen on Spotify</a>
+        <a id="appleLink" href="#" target="_blank" rel="noopener">Apple Music</a>
+      </div>
+      <p class="stats-row" id="statsRow"></p>
+      <button class="again-btn" id="againBtn">Play Another Song</button>
+    </div>
+  </div>
+
+  <p class="footer-note" id="footerNote">Prototype build &middot; 1,838 songs &middot; 570 classic 70s artists &middot; no leaderboard yet</p>
+</div>
+
+<div class="help-overlay hidden" id="helpOverlay">
+  <div class="help-modal">
+
+    <div class="help-logo-wrap">
+      <img src="logo-slanted-cropped.png" alt="Time That Tune!">
+    </div>
+
+    <div class="help-section">
+      <div class="help-section-head">
+        <svg class="note-blue" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+        <strong>1. Choose Your Music Set</strong>
+      </div>
+      <ul>
+        <li><span style="color:var(--text-primary);font-weight:600">Song Decade</span> — you see an artist; choose how many seconds you think you'll need to identify one of their songs.</li>
+        <li><span style="color:var(--text-primary);font-weight:600">Showtunes</span> — you see a musical; bet on how many seconds of a song from that show you'll need.</li>
+        <li><span style="color:var(--text-primary);font-weight:600">Themes</span> — you see a TV or film category (e.g. <em>1970s Drama Film</em>) and guess the theme song.</li>
+      </ul>
+      <p>Use the slider to set your bet. Lower is riskier — and more rewarding if you're right.</p>
+    </div>
+
+    <div class="help-section">
+      <div class="help-section-head">
+        <svg class="note-purple" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+        <strong>2. Listen to the Clip</strong>
+      </div>
+      <p>Hit <code>▶ Play</code>. The game plays exactly the seconds you chose — then stops.</p>
+      <p>The clip is not the start of the song. It's a preview from somewhere inside the track, so you can't rely on intros or famous openings.</p>
+    </div>
+
+    <div class="help-section">
+      <div class="help-section-head">
+        <svg class="note-teal" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+        <strong>3. Make Your Guess</strong>
+      </div>
+      <p>Six titles appear — one correct, five wrong:</p>
+      <div class="help-opts-demo">
+        <div class="help-opt-demo">Bohemian Rhapsody</div>
+        <div class="help-opt-demo">Hotel California</div>
+        <div class="help-opt-demo wrong">Don't Stop Me Now</div>
+        <div class="help-opt-demo">Go Your Own Way</div>
+        <div class="help-opt-demo correct">Roxanne ✓</div>
+        <div class="help-opt-demo">Africa</div>
+      </div>
+      <p>Wrong answers flash red and disappear. Each wrong guess costs <span style="color:var(--error);font-weight:600">+20 seconds</span>. Keep guessing until you find the right one.</p>
+    </div>
+
+    <div class="help-section">
+      <div class="help-section-head">
+        <svg class="note-blue" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+        <strong>4. "Guess Now — I Know It!"</strong>
+      </div>
+      <p>If you recognise the song before time runs out, tap:</p>
+      <div class="help-guess-demo">Guess now — I know it!</div>
+      <p>Skip penalty = average of your bet and the time you actually listened. Stopping early is always worth it once you're sure — but betting low and being right is how you chase elite scores.</p>
+    </div>
+
+    <div class="help-section">
+      <div class="help-section-head">
+        <svg class="note-teal" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+        <strong>5. Scoring — Lower is Better</strong>
+      </div>
+      <div class="help-score-rows">
+        <div class="help-score-row"><span class="help-score-op">&nbsp;</span><span>Seconds listened</span></div>
+        <div class="help-score-row"><span class="help-score-op">+</span><span>Skip penalty (if you stopped early)</span></div>
+        <div class="help-score-row"><span class="help-score-op">+</span><span>Seconds spent answering</span></div>
+        <div class="help-score-row"><span class="help-score-op">+</span><span>20 seconds per wrong guess</span></div>
+      </div>
+    </div>
+
+    <button class="help-close-btn" id="helpCloseBtn" type="button">Got it</button>
+  </div>
+</div>
+
+<audio id="clipAudio" preload="auto"></audio>
+
+<script>
+let SONGS = [];
+
+const el = {
+  artistLabel: document.getElementById('artistLabel'),
+  artistName: document.getElementById('artistName'),
+  puzzleMeta: document.getElementById('puzzleMeta'),
+  durationRow: document.getElementById('durationRow'),
+  durationLabel: document.getElementById('durationLabel'),
+  durationSlider: document.getElementById('durationSlider'),
+  durationValue: document.getElementById('durationValue'),
+  playBtn: document.getElementById('playBtn'),
+  progressWrap: document.getElementById('progressWrap'),
+  progressFill: document.getElementById('progressFill'),
+  progressCaption: document.getElementById('progressCaption'),
+  earlyStopBtn: document.getElementById('earlyStopBtn'),
+  optionsGrid: document.getElementById('optionsGrid'),
+  answerTimer: document.getElementById('answerTimer'),
+  resultPanel: document.getElementById('resultPanel'),
+  resultScore: document.getElementById('resultScore'),
+  resultBreakdown: document.getElementById('resultBreakdown'),
+  scoreInfoBtn: document.getElementById('scoreInfoBtn'),
+  scoreInfoDetail: document.getElementById('scoreInfoDetail'),
+  albumArt: document.getElementById('albumArt'),
+  albumArtPlaceholder: document.getElementById('albumArtPlaceholder'),
+  albumSongName: document.getElementById('albumSongName'),
+  albumArtistName: document.getElementById('albumArtistName'),
+  spotifyLink: document.getElementById('spotifyLink'),
+  appleLink: document.getElementById('appleLink'),
+  againBtn: document.getElementById('againBtn'),
+  statsRow: document.getElementById('statsRow'),
+  staffNotes: Array.from(document.querySelectorAll('.staff-note')),
+  footerNote: document.getElementById('footerNote'),
+};
+
+const NOTE_MOTION = [
+  { freq: 2.4, phase: 0.0, ampScale: 1.00, midOffset: 0 },
+  { freq: 1.6, phase: 1.4, ampScale: 0.75, midOffset: -4 },
+  { freq: 3.1, phase: 2.5, ampScale: 1.10, midOffset: 3 },
+  { freq: 1.9, phase: 4.2, ampScale: 0.85, midOffset: -3 },
+  { freq: 2.8, phase: 0.8, ampScale: 1.05, midOffset: 4 },
+  { freq: 2.1, phase: 3.4, ampScale: 0.80, midOffset: -2 },
+];
+
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const audioEl = document.getElementById('clipAudio');
+audioEl.crossOrigin = 'anonymous';
+
+// ---- Audio-reactive analysis (falls back to decorative motion if Web Audio setup fails) ----
+// Bands deliberately NOT in ascending frequency order — low bands carry sustained,
+// smoothly-varying energy (little frame-to-frame swing) while high bands are mostly
+// sparse transients/decode noise (big swings). Keeping them in frequency order made
+// "how erratic" line up with "how far right", so the order is shuffled here.
+const NOTE_BANDS = [[40, 70], [10, 20], [70, 110], [4, 10], [20, 40], [1, 4]];
+let audioCtx = null;
+let analyser = null;
+let freqData = null;
+let audioReactiveReady = false;
+let bandPeaks = NOTE_BANDS.map(() => 20);
+let bandFloors = NOTE_BANDS.map(() => 0);
+let bandAvgs = NOTE_BANDS.map(() => 0.5);
+let displayLevels = NOTE_BANDS.map(() => 0.5);
+
+function ensureAudioGraph() {
+  if (audioReactiveReady || audioCtx) return;
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const source = audioCtx.createMediaElementSource(audioEl);
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 256;
+    analyser.smoothingTimeConstant = 0.6;
+    source.connect(analyser);
+    analyser.connect(audioCtx.destination);
+    freqData = new Uint8Array(analyser.frequencyBinCount);
+    audioReactiveReady = true;
+  } catch (e) {
+    audioReactiveReady = false;
+  }
+}
+
+let currentSong = null;
+let isDailyRound = false;
+let selectedDuration = 15;
+let listenedSeconds = 0;
+let wrongCount = 0;
+let clipTimer = null;
+let roundActive = false;
+let playStartTime = 0;
+let stoppedEarly = false;
+let earlyStopElapsedSeconds = 0;
+
+let staffAnimFrame = null;
+let staffStartTime = null;
+
+let answerStartTime = null;
+let answerTimerInterval = null;
+
+// ---- Stats (localStorage) ----
+function getTodayStr() {
+  const d = new Date();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${mm}-${dd}`;
+}
+
+function loadStats() {
+  try {
+    return JSON.parse(localStorage.getItem('ttt_stats_v1')) || { gamesPlayed: 0, streak: 0, bestStreak: 0, lastPlayedDate: null };
+  } catch (e) {
+    return { gamesPlayed: 0, streak: 0, bestStreak: 0, lastPlayedDate: null };
+  }
+}
+
+function saveStats() {
+  localStorage.setItem('ttt_stats_v1', JSON.stringify(stats));
+}
+
+let stats = loadStats();
+
+function recordCompletedRound() {
+  stats.gamesPlayed++;
+  const today = getTodayStr();
+  if (stats.lastPlayedDate !== today) {
+    if (stats.lastPlayedDate) {
+      const diffDays = Math.round((new Date(today) - new Date(stats.lastPlayedDate)) / 86400000);
+      stats.streak = diffDays === 1 ? stats.streak + 1 : 1;
+    } else {
+      stats.streak = 1;
+    }
+    stats.lastPlayedDate = today;
+    stats.bestStreak = Math.max(stats.bestStreak, stats.streak);
+  }
+  saveStats();
+  renderStats();
+}
+
+function renderStats() {
+  el.statsRow.textContent = `\u{1F525} ${stats.streak} day streak · ${stats.gamesPlayed} games played · best streak ${stats.bestStreak}`;
+}
+
+// ---- Sheet-music note animation: real audio amplitude per frequency band, ----
+// ---- falls back to decorative sine motion if Web Audio analysis isn't available ----
+function startStaffAnimation() {
+  if (prefersReducedMotion) return;
+  staffStartTime = performance.now();
+  const minY = 20, maxY = 52, midY = (minY + maxY) / 2, amp = (maxY - minY) / 2;
+
+  function frame() {
+    if (audioReactiveReady && freqData) {
+      analyser.getByteFrequencyData(freqData);
+      el.staffNotes.forEach((note, i) => {
+        const [lo, hi] = NOTE_BANDS[i];
+        let sum = 0;
+        for (let b = lo; b < hi; b++) sum += freqData[b];
+        const raw = sum / (hi - lo); // 0-255
+        bandPeaks[i] = Math.max(raw, bandPeaks[i] * 0.992);
+        bandFloors[i] = Math.min(raw, bandFloors[i] + 0.3);
+        const range = Math.max(bandPeaks[i] - bandFloors[i], 8);
+        const level = Math.min(1, Math.max(0, (raw - bandFloors[i]) / range));
+
+        // Real music sits close to its own recent peak most of the time (sustained
+        // notes), with only brief dips — so level alone spends most of its time
+        // high, and smoothing damps the brief dips before they're visible. Stretch
+        // level around its own slow-moving average so the note spends comparable
+        // time above and below the midline instead of hugging the top.
+        bandAvgs[i] += (level - bandAvgs[i]) * 0.01;
+        const avg = Math.min(0.9, Math.max(0.1, bandAvgs[i]));
+        const stretched = level >= avg
+          ? 0.5 + 0.5 * (level - avg) / (1 - avg)
+          : 0.5 * (level / avg);
+
+        displayLevels[i] += (stretched - displayLevels[i]) * 0.15;
+        note.style.top = (maxY - displayLevels[i] * (maxY - minY)) + 'px';
+      });
+    } else {
+      const t = (performance.now() - staffStartTime) / 1000;
+      el.staffNotes.forEach((note, i) => {
+        const m = NOTE_MOTION[i];
+        note.style.top = (midY + m.midOffset + amp * m.ampScale * Math.sin(t * m.freq + m.phase)) + 'px';
+      });
+    }
+    staffAnimFrame = requestAnimationFrame(frame);
+  }
+  staffAnimFrame = requestAnimationFrame(frame);
+}
+
+function stopStaffAnimation() {
+  if (staffAnimFrame) cancelAnimationFrame(staffAnimFrame);
+  staffAnimFrame = null;
+}
+
+// ---- Answer-time stopwatch ----
+function startAnswerTimer() {
+  answerStartTime = performance.now();
+  el.answerTimer.classList.remove('hidden');
+  updateAnswerTimerDisplay();
+  answerTimerInterval = setInterval(updateAnswerTimerDisplay, 100);
+}
+
+function updateAnswerTimerDisplay() {
+  if (!answerStartTime) return;
+  const secs = (performance.now() - answerStartTime) / 1000;
+  el.answerTimer.textContent = `Answer time: ${secs.toFixed(1)}s`;
+}
+
+function stopAnswerTimer() {
+  if (answerTimerInterval) clearInterval(answerTimerInterval);
+  answerTimerInterval = null;
+  const elapsed = answerStartTime ? (performance.now() - answerStartTime) / 1000 : 0;
+  answerStartTime = null;
+  return elapsed;
+}
+
+function mulberry32(seed) {
+  let a = seed; // deterministic PRNG — same seed always produces the same sequence
+  return function rand() {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function shuffleWith(arr, rand) {
+  const out = arr.slice();
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
+function shuffle(arr) {
+  return shuffleWith(arr, Math.random);
+}
+
+function pickRandomSong() {
+  return SONGS[Math.floor(Math.random() * SONGS.length)];
+}
+
+// ---- Daily puzzle: same song for every player on a given calendar day ----
+// Resets at local midnight (each player's own device clock), per product decision
+// 2026-06-26. LAUNCH_DATE is a fixed reference point — do not change it or the
+// shuffle/anti-cluster logic below once live, or every player's "day N" shifts
+// and puzzles people already played would land on different days retroactively.
+const LAUNCH_DATE = '2026-06-26';
+
+function seededShuffle(arr, seed) {
+  return shuffleWith(arr, mulberry32(seed));
+}
+
+function buildDailyOrder() {
+  const rand = mulberry32(1337);
+
+  // Group songs by artist/show and shuffle each group for random internal ordering
+  const groups = new Map();
+  for (const song of SONGS) {
+    const key = song.family || song.artist;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(song);
+  }
+
+  const total = SONGS.length;
+  const slots = new Array(total).fill(null);
+
+  // Place each group at evenly-spaced slots: gap = total / groupSize.
+  // Process largest groups first so they claim ideal slots;
+  // smaller groups fill in around them. Linear-probe resolves collisions.
+  const sorted = [...groups.values()]
+    .map(g => shuffleWith(g, rand))
+    .sort((a, b) => b.length - a.length);
+
+  for (const group of sorted) {
+    const gap = total / group.length;
+    const offset = Math.floor(rand() * gap);
+    for (let i = 0; i < group.length; i++) {
+      let slot = Math.round(offset + i * gap) % total;
+      while (slots[slot] !== null) slot = (slot + 1) % total;
+      slots[slot] = group[i];
+    }
+  }
+
+  return slots;
+}
+
+let DAILY_ORDER = [];
+
+function daysSinceLaunch() {
+  const launch = new Date(LAUNCH_DATE + 'T00:00:00');
+  const now = new Date();
+  const localMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.floor((localMidnight - launch) / 86400000);
+}
+
+function getDailySong() {
+  const idx = ((daysSinceLaunch() % DAILY_ORDER.length) + DAILY_ORDER.length) % DAILY_ORDER.length;
+  return DAILY_ORDER[idx];
+}
+
+// seed === undefined -> genuinely random (practice rounds). seed given -> every
+// player gets the identical distractor set AND grid order for that day's puzzle.
+function buildOptions(song, seed) {
+  const rand = seed === undefined ? Math.random : mulberry32(seed);
+
+  // Themes: all 5 distractors must be same category (artist), year-filtered
+  if (song.decade === 'themes') {
+    let pool;
+    for (const window of [10, 25, Infinity]) {
+      pool = shuffleWith(SONGS.filter(s =>
+        s.id !== song.id &&
+        s.artist === song.artist &&
+        (window === Infinity || !s.year || !song.year || Math.abs(s.year - song.year) <= window)
+      ), rand);
+      if (pool.length >= 5) break;
+    }
+    return shuffleWith([song, ...pool.slice(0, 5)], rand);
+  }
+
+  const sameArtist = shuffleWith(SONGS.filter(s => s.artist === song.artist && s.id !== song.id), rand).slice(0, 3);
+  const usedArtists = new Set([song.artist, ...sameArtist.map(s => s.artist)]);
+  // For showtunes, keep distractors era-appropriate (±10 yr window, widen if pool too small)
+  let otherPool;
+  for (const window of [10, 25, Infinity]) {
+    otherPool = shuffleWith(SONGS.filter(s =>
+      !usedArtists.has(s.artist) &&
+      (window === Infinity || !s.year || !song.year || Math.abs(s.year - song.year) <= window)
+    ), rand);
+    if (otherPool.length >= 2) break;
+  }
+  const others = [];
+  for (const s of otherPool) {
+    if (others.length >= 2) break;
+    if (!usedArtists.has(s.artist)) {
+      others.push(s);
+      usedArtists.add(s.artist);
+    }
+  }
+  let distractors = [...sameArtist, ...others].slice(0, 5);
+  while (distractors.length < 5) {
+    const candidate = SONGS[Math.floor(rand() * SONGS.length)];
+    if (candidate.id !== song.id && !distractors.find(d => d.id === candidate.id)) {
+      distractors.push(candidate);
+    }
+  }
+  return shuffleWith([song, ...distractors], rand);
+}
+
+function startNewRound(useDailyPuzzle) {
+  if (clipTimer) clearTimeout(clipTimer);
+  stopStaffAnimation();
+  stopAnswerTimer();
+  audioEl.pause();
+  currentSong = useDailyPuzzle ? getDailySong() : pickRandomSong();
+  isDailyRound = useDailyPuzzle;
+  wrongCount = 0;
+  roundActive = false;
+
+  if (useDailyPuzzle) {
+    const dateStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    el.puzzleMeta.textContent = `Puzzle #${daysSinceLaunch() + 1} · ${dateStr}`;
+  } else {
+    el.puzzleMeta.textContent = 'Practice round';
+  }
+
+  if (currentSong.decade === 'themes') {
+    const era = Math.floor(currentSong.year / 10) * 10 + 's';
+    el.artistName.textContent = era + ' ' + currentSong.artist;
+    el.artistLabel.textContent = "Today's category";
+  } else if (currentSong.decade === 'showtunes') {
+    el.artistName.textContent = currentSong.artist;
+    el.artistLabel.textContent = "Today's show";
+  } else {
+    el.artistName.textContent = currentSong.artist;
+    el.artistLabel.textContent = "Today's artist";
+  }
+  el.durationLabel.textContent = `How fast can you name this ${currentSong.artist} song?`;
+  el.optionsGrid.innerHTML = '';
+  el.optionsGrid.classList.add('hidden');
+  el.answerTimer.classList.add('hidden');
+  el.resultPanel.classList.add('hidden');
+  el.progressWrap.classList.add('hidden');
+  el.progressFill.style.transition = 'none';
+  el.progressFill.style.width = '0%';
+  el.durationRow.classList.remove('hidden');
+  el.playBtn.classList.remove('hidden');
+  el.playBtn.disabled = false;
+  el.playBtn.textContent = 'Play';
+  el.durationSlider.disabled = false;
+  selectedDuration = 15;
+  el.durationSlider.value = 15;
+  el.durationValue.textContent = '15s';
+
+  audioEl.src = currentSong.preview_url;
+  audioEl.load();
+  renderStats();
+}
+
+function onPlayClick() {
+  if (roundActive) return;
+  roundActive = true;
+  el.durationSlider.disabled = true;
+  el.playBtn.disabled = true;
+  el.playBtn.textContent = 'Listening…';
+  listenedSeconds = selectedDuration;
+  stoppedEarly = false;
+  playStartTime = performance.now();
+
+  ensureAudioGraph();
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  bandPeaks = NOTE_BANDS.map(() => 20);
+  bandFloors = NOTE_BANDS.map(() => 0);
+  bandAvgs = NOTE_BANDS.map(() => 0.5);
+  displayLevels = NOTE_BANDS.map(() => 0.5);
+
+  // Start partway into the preview when there's room, so the clip doesn't always
+  // begin right at the hook (where iTunes previews are curated to start). The
+  // available window shrinks as the chosen duration grows, hitting exactly 0
+  // when the duration equals the full preview length.
+  const previewLength = (isFinite(audioEl.duration) && audioEl.duration > 0) ? audioEl.duration : 30;
+  const maxOffset = Math.max(0, previewLength - selectedDuration);
+  audioEl.currentTime = maxOffset > 0 ? Math.random() * maxOffset : 0;
+  audioEl.play().catch(() => {});
+
+  el.progressWrap.classList.remove('hidden');
+  el.progressCaption.textContent = `Listening for ${selectedDuration}s…`;
+  el.progressFill.style.transition = 'none';
+  el.progressFill.style.width = '0%';
+  requestAnimationFrame(() => {
+    el.progressFill.style.transition = `width ${selectedDuration}s linear`;
+    el.progressFill.style.width = '100%';
+    el.earlyStopBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+  startStaffAnimation();
+
+  clipTimer = setTimeout(() => {
+    audioEl.pause();
+    el.progressCaption.textContent = 'Time\'s up — what was it?';
+    revealOptions();
+  }, selectedDuration * 1000);
+}
+
+function onEarlyStopClick() {
+  if (!roundActive || stoppedEarly) return;
+  clearTimeout(clipTimer);
+  audioEl.pause();
+  stoppedEarly = true;
+  const elapsed = Math.min(selectedDuration, (performance.now() - playStartTime) / 1000);
+  earlyStopElapsedSeconds = Math.round(elapsed);
+  listenedSeconds = Math.ceil((selectedDuration + earlyStopElapsedSeconds) / 2);
+  el.progressCaption.textContent = 'Solved early — what was it?';
+  revealOptions();
+}
+
+function revealOptions() {
+  stopStaffAnimation();
+  el.durationRow.classList.add('hidden');
+  el.playBtn.classList.add('hidden');
+  el.progressWrap.classList.add('hidden');
+  const options = buildOptions(currentSong, isDailyRound ? daysSinceLaunch() : undefined);
+  el.optionsGrid.innerHTML = '';
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.type = 'button';
+    btn.textContent = opt.song;
+    btn.addEventListener('click', () => onOptionClick(opt, btn));
+    el.optionsGrid.appendChild(btn);
+  });
+  el.optionsGrid.classList.remove('hidden');
+  startAnswerTimer();
+}
+
+function onOptionClick(opt, btn) {
+  if (btn.disabled) return;
+  if (opt.id === currentSong.id) {
+    btn.classList.add('correct');
+    const answerSeconds = stopAnswerTimer();
+    finishRound(answerSeconds);
+  } else {
+    btn.classList.add('eliminated');
+    btn.disabled = true;
+    wrongCount++;
+    setTimeout(() => btn.classList.add('eliminated-fade'), 800);
+  }
+}
+
+function finishRound(answerSeconds) {
+  el.optionsGrid.querySelectorAll('button').forEach(b => { b.disabled = true; });
+  el.answerTimer.classList.add('hidden');
+  const roundedAnswerSeconds = Math.round(answerSeconds);
+  const penalty = wrongCount * 20;
+  const score = listenedSeconds + penalty + roundedAnswerSeconds;
+  el.resultScore.textContent = score;
+  const listenedLabel = stoppedEarly ? `${listenedSeconds}s (solved early)` : `${listenedSeconds}s listened`;
+  let breakdown = `${listenedLabel} + ${roundedAnswerSeconds}s to answer`;
+  if (wrongCount > 0) {
+    breakdown += ` + ${wrongCount} wrong guess${wrongCount === 1 ? '' : 'es'} (${penalty}s)`;
+  }
+  el.resultBreakdown.textContent = breakdown;
+
+  el.scoreInfoDetail.classList.add('hidden');
+  if (stoppedEarly) {
+    const halfGap = listenedSeconds - earlyStopElapsedSeconds;
+    el.scoreInfoDetail.textContent = `${earlyStopElapsedSeconds}s to solve + ${halfGap}s, half the gap between your ${selectedDuration}s bet and when you solved it`;
+    el.scoreInfoBtn.classList.remove('hidden');
+  } else {
+    el.scoreInfoBtn.classList.add('hidden');
+  }
+
+  el.albumSongName.textContent = currentSong.song;
+  el.albumArtistName.textContent = currentSong.artist;
+  el.albumArt.classList.remove('loaded');
+  el.albumArtPlaceholder.classList.remove('hidden');
+  loadAlbumArt(currentSong);
+
+  const query = encodeURIComponent(`${currentSong.artist} ${currentSong.song}`);
+  el.spotifyLink.href = `https://open.spotify.com/search/${query}`;
+  el.appleLink.href = `https://music.apple.com/search?term=${query}`;
+
+  el.resultPanel.classList.remove('hidden');
+  recordCompletedRound();
+  requestAnimationFrame(() => {
+    el.resultPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
+
+async function loadAlbumArt(song) {
+  const term = encodeURIComponent(`${song.artist} ${song.song}`);
+  try {
+    const res = await fetch(`https://itunes.apple.com/search?term=${term}&media=music&entity=song&limit=1`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const artworkUrl = data.results && data.results[0] && data.results[0].artworkUrl100;
+    if (!artworkUrl || currentSong !== song) return;
+    const hiRes = artworkUrl.replace('100x100', '600x600');
+    el.albumArt.onload = () => {
+      el.albumArt.classList.add('loaded');
+      el.albumArtPlaceholder.classList.add('hidden');
+    };
+    el.albumArt.src = hiRes;
+  } catch (e) {
+    // network/CORS failure — placeholder note icon stays visible
+  }
+}
+
+el.durationSlider.addEventListener('input', e => {
+  selectedDuration = parseInt(e.target.value, 10);
+  el.durationValue.textContent = selectedDuration + 's';
+});
+
+// ---- Decade selector (70s and 2000s have content; the rest are disabled placeholders) ----
+const decadeSelect = document.getElementById('decadeSelect');
+const decadeBadge = document.getElementById('decadeBadge');
+const decadeBadgeLabel = document.getElementById('decadeBadgeLabel');
+const decadeDropdown = document.getElementById('decadeDropdown');
+
+function closeDecadeDropdown() {
+  decadeSelect.classList.remove('open');
+  decadeDropdown.classList.add('hidden');
+  decadeBadge.setAttribute('aria-expanded', 'false');
+}
+
+decadeBadge.addEventListener('click', e => {
+  e.stopPropagation();
+  const isOpen = decadeSelect.classList.toggle('open');
+  decadeDropdown.classList.toggle('hidden', !isOpen);
+  decadeBadge.setAttribute('aria-expanded', String(isOpen));
+});
+
+function applyDecadeUI(decade) {
+  const meta = CATALOG_META[decade];
+  decadeBadgeLabel.textContent = meta.label;
+  el.footerNote.textContent = meta.footerNote;
+  decadeDropdown.querySelectorAll('.decade-option[data-decade]').forEach(btn => {
+    const isActive = btn.dataset.decade === decade;
+    btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-selected', String(isActive));
+  });
+}
+
+async function switchDecade(decade) {
+  closeDecadeDropdown();
+  if (decade === currentDecade) return;
+  el.playBtn.disabled = true;
+  el.artistName.textContent = 'Loading…';
+  try {
+    await loadCatalog(decade);
+  } catch (e) {
+    el.artistName.textContent = 'Could not load song catalog';
+    console.error(e);
+    return;
+  }
+  applyDecadeUI(decade);
+  startNewRound(true);
+}
+
+decadeDropdown.querySelectorAll('.decade-option[data-decade]').forEach(btn => {
+  btn.addEventListener('click', () => switchDecade(btn.dataset.decade));
+});
+
+document.addEventListener('click', e => {
+  if (!decadeSelect.contains(e.target)) closeDecadeDropdown();
+});
+
+// ---- Help modal ----
+const helpBtn = document.getElementById('helpBtn');
+const helpOverlay = document.getElementById('helpOverlay');
+const helpCloseBtn = document.getElementById('helpCloseBtn');
+
+function openHelp() {
+  helpOverlay.classList.remove('hidden');
+}
+function closeHelp() { helpOverlay.classList.add('hidden'); }
+
+helpBtn.addEventListener('click', openHelp);
+helpCloseBtn.addEventListener('click', closeHelp);
+helpOverlay.addEventListener('click', e => { if (e.target === helpOverlay) closeHelp(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeHelp(); });
+
+el.playBtn.addEventListener('click', onPlayClick);
+el.earlyStopBtn.addEventListener('click', onEarlyStopClick);
+el.scoreInfoBtn.addEventListener('click', () => el.scoreInfoDetail.classList.toggle('hidden'));
+el.againBtn.addEventListener('click', () => startNewRound(false));
+
+audioEl.addEventListener('ended', () => {
+  if (clipTimer) clearTimeout(clipTimer);
+  if (roundActive && el.optionsGrid.classList.contains('hidden')) {
+    revealOptions();
+  }
+});
+
+// ---- Catalog loading: fetched at runtime so the HTML doesn't have to embed ----
+// ---- thousands of songs inline. Requires serving over http(s), not file://. ----
+const CATALOG_META = {
+  '60s': {
+    file: 'ttt-songs-60s-v1.json',
+    label: '60s',
+    footerNote: 'Prototype build · 1,162 songs · 587 classic 60s artists · no leaderboard yet',
+  },
+  '70s': {
+    file: 'ttt-songs-70s-v2.json',
+    label: '70s',
+    footerNote: 'Prototype build · 1,838 songs · 570 classic 70s artists · no leaderboard yet',
+  },
+  '2000s': {
+    file: 'ttt-songs-2000s-v1.json',
+    label: '2000s',
+    footerNote: 'Prototype build · 1,100 songs · 575 artists from the 2000s · no leaderboard yet',
+  },
+  '80s': {
+    file: 'ttt-songs-80s-v1.json',
+    label: '80s',
+    footerNote: 'Prototype build · 1,111 songs · 521 classic 80s artists · no leaderboard yet',
+  },
+  '90s': {
+    file: 'ttt-songs-90s-v1.json',
+    label: '90s',
+    footerNote: 'Prototype build · 1,097 songs · 611 classic 90s artists · no leaderboard yet',
+  },
+  '2010s': {
+    file: 'ttt-songs-2010s-v1.json',
+    label: '2010s',
+    footerNote: 'Prototype build · 1,132 songs · 703 classic 2010s artists · no leaderboard yet',
+  },
+  '2020s': {
+    file: 'ttt-songs-2020s-v1.json',
+    label: '2020s',
+    footerNote: 'Prototype build · 521 songs · 362 classic 2020s artists · no leaderboard yet',
+  },
+  'showtunes': {
+    file: 'ttt-songs-showtunes-v1.json',
+    label: 'Showtunes',
+    footerNote: 'Prototype build · 1,011 songs · 188 Broadway shows · no leaderboard yet',
+  },
+  'themes': {
+    file: 'ttt-songs-themes-v1.json',
+    label: 'Themes',
+    footerNote: '1,065 themes · 14 genre categories · no leaderboard yet',
+  },
+};
+let currentDecade = '70s';
+
+async function loadCatalog(decade) {
+  const res = await fetch(CATALOG_META[decade].file);
+  if (!res.ok) throw new Error(`Failed to load catalog for ${decade}: ${res.status}`);
+  SONGS = await res.json();
+  DAILY_ORDER = buildDailyOrder();
+  currentDecade = decade;
+}
+
+async function init() {
+  el.playBtn.disabled = true;
+  el.artistName.textContent = 'Loading…';
+  try {
+    await loadCatalog('70s');
+  } catch (e) {
+    el.artistName.textContent = 'Could not load song catalog';
+    console.error(e);
+    return;
+  }
+  applyDecadeUI('70s');
+  startNewRound(true);
+}
+
+init();
+
+</script>
+
+</body>
+</html>
