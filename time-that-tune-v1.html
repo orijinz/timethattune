@@ -213,38 +213,118 @@
   .help-modal {
     width: 100%;
     max-width: 360px;
-    max-height: 80vh;
+    max-height: 82vh;
     overflow-y: auto;
     background: var(--bg-elevated);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-xl);
-    padding: 24px;
+    padding: 20px 20px 24px;
   }
 
-  .help-modal h3 {
-    margin: 0 0 14px;
-    font-size: 1.125rem;
+  .help-logo-wrap {
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .help-logo-wrap img {
+    width: 110px;
+    height: auto;
+  }
+
+  .help-section {
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .help-section:last-of-type { border-bottom: none; margin-bottom: 0; }
+
+  .help-section-head {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 7px;
+  }
+  .help-section-head img { width: 16px; height: auto; flex-shrink: 0; }
+  .help-section-head strong { font-size: 0.875rem; color: var(--text-primary); font-weight: 700; }
+
+  .help-section p {
+    margin: 0 0 6px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .help-section p:last-child { margin-bottom: 0; }
+
+  .help-section ul {
+    margin: 0 0 6px;
+    padding: 0;
+    list-style: none;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .help-section ul li {
+    padding-left: 10px;
+    position: relative;
+    margin-bottom: 3px;
+  }
+  .help-section ul li::before { content: '·'; position: absolute; left: 0; }
+
+  /* Option buttons demo */
+  .help-opts-demo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    margin: 7px 0;
+  }
+  .help-opt-demo {
+    background: var(--surface-dim);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 5px 6px;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    text-align: center;
+    line-height: 1.3;
+  }
+  .help-opt-demo.correct {
+    background: rgba(34,197,94,0.15);
+    border-color: var(--success);
+    color: var(--success);
     font-weight: 700;
   }
+  .help-opt-demo.wrong {
+    background: rgba(239,68,68,0.1);
+    border-color: var(--error);
+    color: rgba(239,68,68,0.5);
+    opacity: 0.5;
+  }
 
-  .help-modal ol {
-    margin: 0 0 16px;
-    padding-left: 20px;
-    font-size: 0.875rem;
+  /* Guess Now button demo */
+  .help-guess-demo {
+    display: block;
+    width: 100%;
+    padding: 7px 12px;
+    margin: 7px 0;
+    border: 1px solid var(--accent-teal);
+    border-radius: var(--radius-full);
+    background: rgba(0,206,209,0.08);
+    color: var(--accent-teal);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+    pointer-events: none;
+    box-sizing: border-box;
+  }
+
+  /* Score rows */
+  .help-score-rows {
+    margin: 6px 0 0;
+    font-size: 0.8rem;
     color: var(--text-secondary);
-    line-height: 1.5;
+    line-height: 1.7;
   }
-
-  .help-modal li {
-    margin-bottom: 8px;
-  }
-
-  .help-modal p {
-    margin: 0 0 16px;
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    line-height: 1.5;
-  }
+  .help-score-row { display: flex; gap: 6px; }
+  .help-score-op { color: var(--accent-blue); font-weight: 700; min-width: 10px; }
 
   .help-modal code {
     color: var(--accent-teal);
@@ -820,15 +900,73 @@
 
 <div class="help-overlay hidden" id="helpOverlay">
   <div class="help-modal">
-    <h3>How to Play</h3>
-    <ol>
-      <li id="helpStep1">You'll see an artist and a decade. Set the slider to the number of seconds you want to hear &mdash; your goal is to choose the fewest seconds you'll need to identify the song that's about to play.</li>
-      <li>Hit <code>Play</code>. The clip plays for exactly the time you choose, then stops. The song clip is not generally the beginning of the song, it is a preview of some part of the song.</li>
-      <li>Know it already? Hit <code>Guess now &mdash; I know it!</code> to skip the rest of the clip. Your score becomes the average of your bet and how long you actually listened &mdash; so it's always worth stopping early once you're sure, but betting low and being right is still your best score.</li>
-      <li id="helpStep4">Six song titles appear &mdash; one correct, five wrong. Pick the correct one.</li>
-      <li>Wrong picks get eliminated but cost you 20 seconds each. Keep guessing until you get the right answer.</li>
-    </ol>
-    <p>Your score is seconds listened (or, if you solved it early, the average of your bet and actual time) + seconds spent answering + 20s per wrong guess. Lower is better.</p>
+
+    <div class="help-logo-wrap">
+      <img src="logo-slanted-cropped.png" alt="Time That Tune!">
+    </div>
+
+    <div class="help-section">
+      <div class="help-section-head">
+        <img src="note-blue.png" alt="">
+        <strong>1. Choose Your Music Set</strong>
+      </div>
+      <ul>
+        <li><span style="color:var(--text-primary);font-weight:600">Song Decade</span> — you see an artist; choose how many seconds you think you'll need to identify one of their songs.</li>
+        <li><span style="color:var(--text-primary);font-weight:600">Showtunes</span> — you see a musical; bet on how many seconds of a song from that show you'll need.</li>
+        <li><span style="color:var(--text-primary);font-weight:600">Themes</span> — you see a TV or film category (e.g. <em>1970s Drama Film</em>) and guess the theme song.</li>
+      </ul>
+      <p>Use the slider to set your bet. Lower is riskier — and more rewarding if you're right.</p>
+    </div>
+
+    <div class="help-section">
+      <div class="help-section-head">
+        <img src="note-purple.png" alt="">
+        <strong>2. Listen to the Clip</strong>
+      </div>
+      <p>Hit <code>▶ Play</code>. The game plays exactly the seconds you chose — then stops.</p>
+      <p>The clip is not the start of the song. It's a preview from somewhere inside the track, so you can't rely on intros or famous openings.</p>
+    </div>
+
+    <div class="help-section">
+      <div class="help-section-head">
+        <img src="note-teal.png" alt="">
+        <strong>3. Make Your Guess</strong>
+      </div>
+      <p>Six titles appear — one correct, five wrong:</p>
+      <div class="help-opts-demo">
+        <div class="help-opt-demo">Bohemian Rhapsody</div>
+        <div class="help-opt-demo">Hotel California</div>
+        <div class="help-opt-demo wrong">Don't Stop Me Now</div>
+        <div class="help-opt-demo">Go Your Own Way</div>
+        <div class="help-opt-demo correct">Roxanne ✓</div>
+        <div class="help-opt-demo">Africa</div>
+      </div>
+      <p>Wrong answers flash red and disappear. Each wrong guess costs <span style="color:var(--error);font-weight:600">+20 seconds</span>. Keep guessing until you find the right one.</p>
+    </div>
+
+    <div class="help-section">
+      <div class="help-section-head">
+        <img src="note-blue.png" alt="">
+        <strong>4. "Guess Now — I Know It!"</strong>
+      </div>
+      <p>If you recognise the song before time runs out, tap:</p>
+      <div class="help-guess-demo">Guess now — I know it!</div>
+      <p>Skip penalty = average of your bet and the time you actually listened. Stopping early is always worth it once you're sure — but betting low and being right is how you chase elite scores.</p>
+    </div>
+
+    <div class="help-section">
+      <div class="help-section-head">
+        <img src="note-teal.png" alt="">
+        <strong>5. Scoring — Lower is Better</strong>
+      </div>
+      <div class="help-score-rows">
+        <div class="help-score-row"><span class="help-score-op">&nbsp;</span><span>Seconds listened</span></div>
+        <div class="help-score-row"><span class="help-score-op">+</span><span>Skip penalty (if you stopped early)</span></div>
+        <div class="help-score-row"><span class="help-score-op">+</span><span>Seconds spent answering</span></div>
+        <div class="help-score-row"><span class="help-score-op">+</span><span>20 seconds per wrong guess</span></div>
+      </div>
+    </div>
+
     <button class="help-close-btn" id="helpCloseBtn" type="button">Got it</button>
   </div>
 </div>
@@ -1446,18 +1584,6 @@ const helpOverlay = document.getElementById('helpOverlay');
 const helpCloseBtn = document.getElementById('helpCloseBtn');
 
 function openHelp() {
-  const step1 = document.getElementById('helpStep1');
-  const step4 = document.getElementById('helpStep4');
-  if (currentDecade === 'showtunes') {
-    step1.innerHTML = "You'll see a Broadway show name. Set the slider to the number of seconds you want to hear &mdash; your goal is to choose the fewest seconds you'll need to identify the song.";
-    step4.innerHTML = "Six song titles from that show appear &mdash; one correct, five wrong. Pick the correct one.";
-  } else if (currentDecade === 'themes') {
-    step1.innerHTML = "You'll see a genre and era (e.g. <em>80s TV Drama</em>). Set the slider to the number of seconds you want to hear &mdash; your goal is to choose the fewest seconds you'll need to identify the theme.";
-    step4.innerHTML = "Six show or movie titles appear &mdash; one correct, five wrong. Pick the one whose theme you just heard.";
-  } else {
-    step1.innerHTML = "You'll see an artist and a decade. Set the slider to the number of seconds you want to hear &mdash; your goal is to choose the fewest seconds you'll need to identify the song that's about to play.";
-    step4.innerHTML = "Six song titles appear &mdash; one correct, five wrong. Pick the correct one.";
-  }
   helpOverlay.classList.remove('hidden');
 }
 function closeHelp() { helpOverlay.classList.add('hidden'); }
