@@ -507,7 +507,10 @@
     border-color: var(--error);
     color: rgba(239,68,68,0.6);
     opacity: 0.6;
-    text-decoration: line-through;
+  }
+  .option-btn.eliminated-fade {
+    opacity: 0 !important;
+    transition: opacity 0.4s ease !important;
   }
 
   .option-btn:disabled {
@@ -1315,6 +1318,7 @@ function onOptionClick(opt, btn) {
     btn.classList.add('eliminated');
     btn.disabled = true;
     wrongCount++;
+    setTimeout(() => btn.classList.add('eliminated-fade'), 800);
   }
 }
 
