@@ -597,29 +597,41 @@
     cursor: not-allowed;
   }
 
-  /* Celebration: correct answer flies to center */
+  /* Celebration overlay — plain text, no button styling */
   .celebration-card {
     position: fixed;
     z-index: 200;
-    background: rgba(255,255,255,0.1);
-    border: 2px solid rgba(255,255,255,0.5);
-    color: var(--text-primary);
-    border-radius: var(--radius-md);
-    font-weight: 700;
-    font-size: 0.875rem;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
+    gap: 8px;
     text-align: center;
-    padding: 10px 14px;
-    box-sizing: border-box;
+    padding: 0 20px;
     pointer-events: none;
-    transition: left 0.6s cubic-bezier(0.34,1.56,0.64,1),
-                top 0.6s cubic-bezier(0.34,1.56,0.64,1),
-                width 0.6s cubic-bezier(0.34,1.56,0.64,1),
-                height 0.6s cubic-bezier(0.34,1.56,0.64,1),
-                font-size 0.5s ease,
-                opacity 0.3s ease;
+    opacity: 0;
+    transform: scale(0.88);
+    transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .celebration-card.celebration-visible {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .celebration-check {
+    display: block;
+    font-size: 1.3rem;
+    color: var(--success);
+    margin-bottom: 6px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .celebration-answer {
+    display: block;
+    font-size: 2.6rem;
+    font-weight: 800;
+    color: var(--success);
+    line-height: 1.2;
+    text-shadow: 0 0 24px rgba(34,197,94,0.4);
   }
 
   /* Confetti layer — bounds set via JS to match game card exactly */
@@ -1507,49 +1519,59 @@ function launchCelebration(btn, answerSeconds) {
   el.answerTimer.classList.add('hidden');
 
   const approxScore = listenedSeconds + wrongCount * 20 + Math.round(answerSeconds);
-  const answerText = btn.dataset.title || btn.textContent.trim();
+  const answerText  = btn.textContent.trim();
 
-  // Snapshot positions before any DOM changes
-  const rect      = btn.getBoundingClientRect();
+  // Snapshot positions before DOM changes
   const shellEl   = document.querySelector('.app-shell');
   const shellRect = shellEl.getBoundingClientRect();
   const artistRow = document.querySelector('.artist-row');
-  const belowArtist = artistRow
-    ? artistRow.getBoundingClientRect().bottom + 14
-    : shellRect.top + shellRect.height * 0.42;
+  const targetTop = artistRow
+    ? artistRow.getBoundingClientRect().bottom + 24
+    : shellRect.top + shellRect.height * 0.44;
 
-  // Fade options grid (so original green button disappears)
-  el.optionsGrid.style.transition = 'opacity 0.25s ease';
-  el.optionsGrid.style.pointerEvents = 'none';
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    el.optionsGrid.style.opacity = '0';
-  }));
+  // 700ms: let player see the green button, then fade options grid out
+  setTimeout(() => {
+    el.optionsGrid.style.transition = 'opacity 0.5s ease';
+    el.optionsGrid.style.pointerEvents = 'none';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      el.optionsGrid.style.opacity = '0';
+    }));
+  }, 700);
 
-  // Create white celebration card at button position
+  // Build celebration overlay — plain text, no box
   const card = document.createElement('div');
   card.className = 'celebration-card';
-  card.textContent = answerText;
-  card.style.left   = rect.left   + 'px';
-  card.style.top    = rect.top    + 'px';
-  card.style.width  = rect.width  + 'px';
-  card.style.height = rect.height + 'px';
+
+  const checkEl = document.createElement('span');
+  checkEl.className = 'celebration-check';
+  checkEl.textContent = '✓ Correct';
+
+  const answerEl = document.createElement('span');
+  answerEl.className = 'celebration-answer';
+  answerEl.textContent = answerText;
+
+  card.appendChild(checkEl);
+  card.appendChild(answerEl);
+
+  // Place at final position (centered in card, below artist row)
+  card.style.left  = (shellRect.left + 16) + 'px';
+  card.style.top   = targetTop + 'px';
+  card.style.width = (shellRect.width - 32) + 'px';
   document.body.appendChild(card);
 
-  // Fly card to center, just below the artist/category/show display
-  const cardW = Math.round(shellRect.width - 32);
-  const cardH = Math.max(rect.height, 52);
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    card.style.left     = (shellRect.left + 16) + 'px';
-    card.style.top      = belowArtist + 'px';
-    card.style.width    = cardW + 'px';
-    card.style.height   = cardH + 'px';
-    card.style.fontSize = '1.05rem';
-  }));
-
-  // Start confetti after card begins moving
-  setTimeout(() => launchConfetti(approxScore, shellRect), 250);
-
+  // 1000ms: fade/scale in the answer
   setTimeout(() => {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      card.classList.add('celebration-visible');
+    }));
+  }, 1000);
+
+  // 1300ms: confetti
+  setTimeout(() => launchConfetti(approxScore, shellRect), 1300);
+
+  // 4200ms: fade out and show result
+  setTimeout(() => {
+    card.style.transition = 'opacity 0.5s ease';
     card.style.opacity = '0';
     setTimeout(() => {
       card.remove();
@@ -1559,8 +1581,8 @@ function launchCelebration(btn, answerSeconds) {
       el.optionsGrid.style.pointerEvents = '';
       el.optionsGrid.classList.add('hidden');
       finishRound(answerSeconds);
-    }, 320);
-  }, 2800);
+    }, 500);
+  }, 4200);
 }
 
 function launchConfetti(score, shellRect) {
