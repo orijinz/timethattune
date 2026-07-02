@@ -601,9 +601,9 @@
   .celebration-card {
     position: fixed;
     z-index: 200;
-    background: rgba(34,197,94,0.18);
-    border: 2px solid var(--success);
-    color: var(--success);
+    background: rgba(255,255,255,0.1);
+    border: 2px solid rgba(255,255,255,0.5);
+    color: var(--text-primary);
     border-radius: var(--radius-md);
     font-weight: 700;
     font-size: 0.875rem;
@@ -614,30 +614,30 @@
     padding: 10px 14px;
     box-sizing: border-box;
     pointer-events: none;
-    transition: left 0.65s cubic-bezier(0.34,1.56,0.64,1),
-                top 0.65s cubic-bezier(0.34,1.56,0.64,1),
-                width 0.65s cubic-bezier(0.34,1.56,0.64,1),
-                height 0.65s cubic-bezier(0.34,1.56,0.64,1),
+    transition: left 0.6s cubic-bezier(0.34,1.56,0.64,1),
+                top 0.6s cubic-bezier(0.34,1.56,0.64,1),
+                width 0.6s cubic-bezier(0.34,1.56,0.64,1),
+                height 0.6s cubic-bezier(0.34,1.56,0.64,1),
                 font-size 0.5s ease,
                 opacity 0.3s ease;
   }
 
-  /* Confetti layer */
+  /* Confetti layer — bounds set via JS to match game card exactly */
   .confetti-container {
     position: fixed;
-    inset: 0;
     z-index: 190;
     pointer-events: none;
     overflow: hidden;
   }
   .confetti-piece {
     position: absolute;
+    top: -10px;
     animation: confetti-fall linear forwards;
   }
   @keyframes confetti-fall {
-    0%   { transform: translateY(0) rotate(0deg);    opacity: 1; }
+    0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
     70%  { opacity: 0.85; }
-    100% { transform: translateY(440px) rotate(540deg); opacity: 0; }
+    100% { transform: translateY(var(--fall, 420px)) rotate(540deg); opacity: 0; }
   }
 
   .result-panel {
@@ -1506,39 +1506,48 @@ function launchCelebration(btn, answerSeconds) {
   el.optionsGrid.querySelectorAll('button').forEach(b => { b.disabled = true; });
   el.answerTimer.classList.add('hidden');
 
-  // Fade entire options grid so the original buttons don't show while card flies
+  const approxScore = listenedSeconds + wrongCount * 20 + Math.round(answerSeconds);
+  const answerText = btn.dataset.title || btn.textContent.trim();
+
+  // Snapshot positions before any DOM changes
+  const rect      = btn.getBoundingClientRect();
+  const shellEl   = document.querySelector('.app-shell');
+  const shellRect = shellEl.getBoundingClientRect();
+  const artistRow = document.querySelector('.artist-row');
+  const belowArtist = artistRow
+    ? artistRow.getBoundingClientRect().bottom + 14
+    : shellRect.top + shellRect.height * 0.42;
+
+  // Fade options grid (so original green button disappears)
   el.optionsGrid.style.transition = 'opacity 0.25s ease';
   el.optionsGrid.style.pointerEvents = 'none';
   requestAnimationFrame(() => requestAnimationFrame(() => {
     el.optionsGrid.style.opacity = '0';
   }));
 
-  const approxScore = listenedSeconds + wrongCount * 20 + Math.round(answerSeconds);
-
-  // Clone correct button as fixed overlay card starting at button position
-  const rect = btn.getBoundingClientRect();
+  // Create white celebration card at button position
   const card = document.createElement('div');
   card.className = 'celebration-card';
-  card.textContent = btn.textContent.replace(' ✓', '') + ' ✓';
+  card.textContent = answerText;
   card.style.left   = rect.left   + 'px';
   card.style.top    = rect.top    + 'px';
   card.style.width  = rect.width  + 'px';
   card.style.height = rect.height + 'px';
   document.body.appendChild(card);
 
-  // Fly to upper-center of game card
+  // Fly card to center, just below the artist/category/show display
+  const cardW = Math.round(shellRect.width - 32);
+  const cardH = Math.max(rect.height, 52);
   requestAnimationFrame(() => requestAnimationFrame(() => {
-    const w = Math.min(Math.max(rect.width, 200), 300);
-    const h = Math.max(rect.height, 60);
-    const shellRect = (document.querySelector('.app-shell') || document.body).getBoundingClientRect();
-    card.style.left     = (shellRect.left + (shellRect.width - w) / 2) + 'px';
-    card.style.top      = (shellRect.top  + shellRect.height * 0.38) + 'px';
-    card.style.width    = w + 'px';
-    card.style.height   = h + 'px';
-    card.style.fontSize = '1.1rem';
+    card.style.left     = (shellRect.left + 16) + 'px';
+    card.style.top      = belowArtist + 'px';
+    card.style.width    = cardW + 'px';
+    card.style.height   = cardH + 'px';
+    card.style.fontSize = '1.05rem';
   }));
 
-  launchConfetti(approxScore);
+  // Start confetti after card begins moving
+  setTimeout(() => launchConfetti(approxScore, shellRect), 250);
 
   setTimeout(() => {
     card.style.opacity = '0';
@@ -1551,10 +1560,10 @@ function launchCelebration(btn, answerSeconds) {
       el.optionsGrid.classList.add('hidden');
       finishRound(answerSeconds);
     }, 320);
-  }, 2600);
+  }, 2800);
 }
 
-function launchConfetti(score) {
+function launchConfetti(score, shellRect) {
   const elite = score <= 15, great = score <= 30;
   const symbols = elite ? ['♬','★','♫','★','♬']
                 : great ? ['♪','♫','♬','♩','♫']
@@ -1564,13 +1573,17 @@ function launchConfetti(score) {
     : ['rgba(0,168,255,0.9)','rgba(160,32,240,0.9)','rgba(0,206,209,0.9)'];
   const count = elite ? 40 : great ? 28 : 18;
 
+  // Container sized & positioned to exactly cover the game card
+  const r = shellRect || { left: 0, top: 0, width: window.innerWidth, height: 400 };
   const container = document.createElement('div');
   container.className = 'confetti-container';
+  container.style.left   = r.left   + 'px';
+  container.style.top    = r.top    + 'px';
+  container.style.width  = r.width  + 'px';
+  container.style.height = r.height + 'px';
   document.body.appendChild(container);
 
-  // Constrain confetti to game card bounds
-  const shell = document.querySelector('.app-shell');
-  const r = shell ? shell.getBoundingClientRect() : { left: 0, top: 0, width: window.innerWidth, height: 400 };
+  const fallDist = r.height + 20;
 
   for (let i = 0; i < count; i++) {
     const piece = document.createElement('span');
@@ -1580,8 +1593,8 @@ function launchConfetti(score) {
     const delay = Math.random() * 1.2;
     const dur   = 1.8 + Math.random() * 1.2;
     const color = colors[Math.floor(Math.random() * colors.length)];
-    const xPos  = r.left + Math.random() * r.width;
-    piece.style.cssText = `left:${xPos}px;top:${r.top}px;font-size:${size}px;color:${color};animation-duration:${dur}s;animation-delay:${delay}s;`;
+    const xPos  = Math.random() * r.width;
+    piece.style.cssText = `left:${xPos}px;font-size:${size}px;color:${color};animation-duration:${dur}s;animation-delay:${delay}s;--fall:${fallDist}px;`;
     container.appendChild(piece);
   }
 }
