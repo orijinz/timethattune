@@ -1529,9 +1529,9 @@ function launchCelebration(btn, answerSeconds) {
     el.artistName.style.transition = 'font-size 0.6s ease, opacity 0.6s ease';
     el.artistLabel.style.transition = 'opacity 0.6s ease';
     requestAnimationFrame(() => requestAnimationFrame(() => {
-      el.artistName.style.fontSize  = '1.05rem';
-      el.artistName.style.opacity   = '0.55';
-      el.artistLabel.style.opacity  = '0.35';
+      el.artistName.style.fontSize  = '0.85rem';
+      el.artistName.style.opacity   = '0.45';
+      el.artistLabel.style.opacity  = '0.3';
     }));
   }, 700);
 
@@ -1547,17 +1547,17 @@ function launchCelebration(btn, answerSeconds) {
   card.style.width = (shellRect.width - 32) + 'px';
   document.body.appendChild(card);
 
-  // 1000ms: fade/scale in the answer
+  // 1100ms: fade/scale in the answer
   setTimeout(() => {
     requestAnimationFrame(() => requestAnimationFrame(() => {
       card.classList.add('celebration-visible');
     }));
-  }, 1000);
+  }, 1100);
 
-  // 1400ms: confetti
-  setTimeout(() => launchConfetti(approxScore, shellRect), 1400);
+  // 1600ms: confetti
+  setTimeout(() => launchConfetti(approxScore, shellRect), 1600);
 
-  // 5000ms: fade artist name + song title together, then show result
+  // 5800ms: fade artist name + song title together, then show result
   setTimeout(() => {
     const fadeOut = 'opacity 0.6s ease';
     card.style.transition = fadeOut;
@@ -1588,7 +1588,7 @@ function launchConfetti(score, shellRect) {
   const colors  = elite
     ? ['#ffd700','#ffcc00','#fff7a0','#ffd700']
     : ['rgba(0,168,255,0.9)','rgba(160,32,240,0.9)','rgba(0,206,209,0.9)'];
-  const count = elite ? 40 : great ? 28 : 18;
+  const count = elite ? 55 : great ? 45 : 35;
 
   // Container sized & positioned to exactly cover the game card
   const r = shellRect || { left: 0, top: 0, width: window.innerWidth, height: 400 };
