@@ -834,6 +834,91 @@
     color: var(--accent-teal);
   }
 
+  /* Stats icon button in header */
+  .stats-icon-btn {
+    background: none; border: none; cursor: pointer;
+    color: var(--text-secondary); padding: 4px 6px;
+    border-radius: var(--radius-md); line-height: 0;
+    transition: color 0.15s;
+  }
+  .stats-icon-btn:hover { color: var(--accent-teal); }
+
+  /* Result screen action row (Share + My Stats side by side) */
+  .result-action-row {
+    display: flex; gap: 10px; margin-bottom: 12px;
+  }
+  .result-action-row .share-btn { flex: 1; margin-bottom: 0; }
+  .my-stats-btn {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
+    background: var(--bg-elevated); border: 1px solid var(--border-color);
+    color: var(--text-primary); border-radius: var(--radius-full);
+    padding: 12px 16px; font-size: 0.9rem; font-weight: 600;
+    cursor: pointer; transition: background 0.15s, border-color 0.15s;
+  }
+  .my-stats-btn:hover { background: var(--surface-dim); border-color: var(--accent-teal); }
+
+  /* Stats overlay */
+  .stats-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75); z-index: 300;
+    display: flex; align-items: flex-end; justify-content: center;
+  }
+  .stats-overlay.hidden { display: none; }
+  .stats-panel {
+    background: var(--bg-card); width: 100%; max-width: 480px;
+    max-height: 88vh; border-radius: 20px 20px 0 0;
+    overflow-y: auto; padding: 24px 20px 40px;
+  }
+  .stats-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px;
+  }
+  .stats-title { font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin: 0; }
+  .stats-close {
+    background: none; border: none; color: var(--text-secondary);
+    font-size: 1.1rem; cursor: pointer; padding: 4px 8px;
+  }
+  .stats-summary-row {
+    display: flex; gap: 10px; margin-bottom: 24px;
+  }
+  .stats-summary-item {
+    flex: 1; background: var(--bg-elevated); border-radius: var(--radius-lg);
+    padding: 14px 8px; text-align: center;
+  }
+  .stats-summary-num {
+    display: block; font-size: 2rem; font-weight: 800;
+    color: var(--accent-teal); line-height: 1; margin-bottom: 5px;
+  }
+  .stats-summary-label {
+    font-size: 0.68rem; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .stats-table {
+    width: 100%; border-collapse: collapse;
+    font-size: 0.85rem; margin-bottom: 24px;
+  }
+  .stats-table th {
+    text-align: left; color: var(--text-tertiary);
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 0 6px 10px 0; border-bottom: 1px solid var(--border-color);
+  }
+  .stats-table th:not(:first-child),
+  .stats-table td:not(:first-child) { text-align: center; }
+  .stats-table td {
+    padding: 10px 6px 10px 0;
+    border-bottom: 1px solid rgba(36,48,80,0.5);
+    color: var(--text-primary);
+  }
+  .stats-row-unplayed td { color: var(--text-tertiary); }
+  .stats-groups-teaser {
+    background: var(--bg-elevated); border-radius: var(--radius-lg);
+    padding: 18px 16px; text-align: center;
+  }
+  .stats-groups-title {
+    font-size: 0.95rem; font-weight: 600; color: var(--text-primary); margin: 0 0 4px;
+  }
+  .stats-groups-sub { font-size: 0.8rem; color: var(--text-secondary); margin: 0; }
+
   /* Share popup */
   .share-overlay {
     display: none; position: fixed; inset: 0;
@@ -945,6 +1030,9 @@
       </div>
       <div class="meta-right">
         <span class="puzzle-meta" id="puzzleMeta"></span>
+        <button class="stats-icon-btn" id="statsIconBtn" type="button" aria-label="My stats">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        </button>
         <button class="help-btn" id="helpBtn" type="button" aria-label="How to play">?</button>
       </div>
     </div>
@@ -1010,10 +1098,16 @@
         <a id="appleLink" href="#" target="_blank" rel="noopener">Apple Music</a>
       </div>
       <p class="stats-row" id="statsRow"></p>
-      <button class="share-btn" id="shareBtn">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-        Share My Score
-      </button>
+      <div class="result-action-row">
+        <button class="share-btn" id="shareBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Share My Score
+        </button>
+        <button class="my-stats-btn" id="myStatsBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          My Stats
+        </button>
+      </div>
       <button class="again-btn" id="againBtn">Play Another Song</button>
     </div>
   </div>
@@ -1036,6 +1130,45 @@
   </div>
 </div>
 <div class="toast" id="toast"></div>
+
+<div class="stats-overlay hidden" id="statsOverlay">
+  <div class="stats-panel">
+    <div class="stats-header">
+      <h2 class="stats-title">My Stats</h2>
+      <button class="stats-close" id="statsClose">&#10005;</button>
+    </div>
+    <div class="stats-summary-row">
+      <div class="stats-summary-item">
+        <span class="stats-summary-num" id="statsCurStreak">0</span>
+        <span class="stats-summary-label">Streak</span>
+      </div>
+      <div class="stats-summary-item">
+        <span class="stats-summary-num" id="statsBestStreak">0</span>
+        <span class="stats-summary-label">Best Streak</span>
+      </div>
+      <div class="stats-summary-item">
+        <span class="stats-summary-num" id="statsTotalPlayed">0</span>
+        <span class="stats-summary-label">Total Played</span>
+      </div>
+    </div>
+    <table class="stats-table">
+      <thead>
+        <tr>
+          <th>Decade</th>
+          <th>Played</th>
+          <th>Best</th>
+          <th>Avg</th>
+          <th>1st Try</th>
+        </tr>
+      </thead>
+      <tbody id="statsTableBody"></tbody>
+    </table>
+    <div class="stats-groups-teaser">
+      <p class="stats-groups-title">&#127942; Groups — coming soon</p>
+      <p class="stats-groups-sub">Challenge friends &amp; track scores together</p>
+    </div>
+  </div>
+</div>
 
 <div class="help-overlay hidden" id="helpOverlay">
   <div class="help-modal">
@@ -1154,6 +1287,8 @@ const el = {
   appleLink: document.getElementById('appleLink'),
   againBtn: document.getElementById('againBtn'),
   shareBtn: document.getElementById('shareBtn'),
+  myStatsBtn: document.getElementById('myStatsBtn'),
+  statsIconBtn: document.getElementById('statsIconBtn'),
   statsRow: document.getElementById('statsRow'),
   staffNotes: Array.from(document.querySelectorAll('.staff-note')),
   footerNote: document.getElementById('footerNote'),
@@ -1745,13 +1880,91 @@ function showToast(msg, duration = 2400) {
   toastTimer = setTimeout(() => t.classList.remove('show'), duration);
 }
 
+// ---- localStorage stats ----
+const STATS_KEY = 'ttt_stats';
+const DECADE_LABELS = {
+  '60s':'60s','70s':'70s','80s':'80s','90s':'90s',
+  '2000s':'2000s','2010s':'2010s','2020s':'2020s',
+  'showtunes':'Showtunes','themes':'Themes'
+};
+
+function defaultStats() {
+  const decades = {};
+  Object.keys(DECADE_LABELS).forEach(k => {
+    decades[k] = { played: 0, best: null, totalScore: 0, firstTry: 0 };
+  });
+  return { streak: 0, bestStreak: 0, lastPlayedDate: null, decades };
+}
+
+function loadStats() {
+  try {
+    const raw = localStorage.getItem(STATS_KEY);
+    if (!raw) return defaultStats();
+    const s = JSON.parse(raw);
+    // ensure all decades exist (handles saves from before a decade was added)
+    Object.keys(DECADE_LABELS).forEach(k => {
+      if (!s.decades[k]) s.decades[k] = { played: 0, best: null, totalScore: 0, firstTry: 0 };
+    });
+    return s;
+  } catch(e) { return defaultStats(); }
+}
+
+function persistStats(stats) {
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(stats)); } catch(e) {}
+}
+
+function recordStats(score, decade) {
+  const stats = loadStats();
+  const today = new Date().toISOString().slice(0, 10);
+
+  if (stats.lastPlayedDate !== today) {
+    const yesterday = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+    stats.streak = stats.lastPlayedDate === yesterday ? stats.streak + 1 : 1;
+    stats.bestStreak = Math.max(stats.bestStreak, stats.streak);
+    stats.lastPlayedDate = today;
+  }
+
+  const d = stats.decades[decade] || { played: 0, best: null, totalScore: 0, firstTry: 0 };
+  d.played++;
+  d.totalScore += score;
+  if (d.best === null || score < d.best) d.best = score;
+  if (wrongCount === 0) d.firstTry++;
+  stats.decades[decade] = d;
+
+  persistStats(stats);
+}
+
+function showStats() {
+  const stats = loadStats();
+
+  document.getElementById('statsCurStreak').textContent = stats.streak;
+  document.getElementById('statsBestStreak').textContent = stats.bestStreak;
+  const total = Object.values(stats.decades).reduce((s, d) => s + d.played, 0);
+  document.getElementById('statsTotalPlayed').textContent = total;
+
+  const tbody = document.getElementById('statsTableBody');
+  tbody.innerHTML = '';
+  Object.entries(DECADE_LABELS).forEach(([key, label]) => {
+    const d = stats.decades[key];
+    const avg = d.played > 0 ? Math.round(d.totalScore / d.played) : null;
+    const pct = d.played > 0 ? Math.round((d.firstTry / d.played) * 100) + '%' : '—';
+    const tr = document.createElement('tr');
+    if (d.played === 0) tr.classList.add('stats-row-unplayed');
+    tr.innerHTML = `<td>${label}</td><td>${d.played || '—'}</td><td>${d.best !== null ? d.best : '—'}</td><td>${avg !== null ? avg : '—'}</td><td>${pct}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('statsOverlay').classList.remove('hidden');
+}
+
+function closeStats() {
+  document.getElementById('statsOverlay').classList.add('hidden');
+}
+
 let _shareText = '', _shareUrl = 'https://timethattune.com';
 
 function shareResult() {
   const score = parseInt(el.resultScore.textContent, 10) || 0;
-  const wrongLine = wrongCount > 0
-    ? `\n❌ ${wrongCount} wrong guess${wrongCount > 1 ? 'es' : ''} (+${wrongCount * 20}s)`
-    : '';
 
   // Build entity label from currentSong (avoids stale DOM values)
   let entity = currentSong ? currentSong.artist : 'a song';
@@ -1775,7 +1988,7 @@ function shareResult() {
     `🎵 Time That Tune challenge — ${entity}, score: ${score}s. Your move! 🎶`,
   ];
 
-  _shareText = templates[Math.floor(Math.random() * templates.length)] + wrongLine;
+  _shareText = templates[Math.floor(Math.random() * templates.length)];
 
   const encFull = encodeURIComponent(_shareText + '\n' + _shareUrl);
   const encUrl  = encodeURIComponent(_shareUrl);
@@ -1855,6 +2068,7 @@ function finishRound(answerSeconds) {
 
   el.resultPanel.classList.remove('hidden');
   recordCompletedRound();
+  recordStats(score, currentDecade);
   requestAnimationFrame(() => {
     el.resultPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
@@ -1961,6 +2175,11 @@ el.shareBtn.addEventListener('click', shareResult);
 document.getElementById('shareClose').addEventListener('click', closeSharePopup);
 document.getElementById('shareCopy').addEventListener('click', () => { safeCopy(_shareText + '\n' + _shareUrl); closeSharePopup(); });
 document.getElementById('shareOverlay').addEventListener('click', e => { if (e.target === document.getElementById('shareOverlay')) closeSharePopup(); });
+
+el.myStatsBtn.addEventListener('click', showStats);
+el.statsIconBtn.addEventListener('click', showStats);
+document.getElementById('statsClose').addEventListener('click', closeStats);
+document.getElementById('statsOverlay').addEventListener('click', e => { if (e.target === document.getElementById('statsOverlay')) closeStats(); });
 
 audioEl.addEventListener('ended', () => {
   if (clipTimer) clearTimeout(clipTimer);
