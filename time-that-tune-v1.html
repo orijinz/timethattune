@@ -834,6 +834,34 @@
     color: var(--accent-teal);
   }
 
+  /* Share popup */
+  .share-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.65); z-index: 400;
+    align-items: center; justify-content: center;
+  }
+  .share-overlay.open { display: flex; }
+  .share-popup {
+    background: var(--bg-elevated); border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg); width: min(320px, 88vw);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+  }
+  .share-popup-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px 10px; border-bottom: 1px solid var(--border-color);
+  }
+  .share-popup-title { font-size: 1rem; font-weight: 700; color: var(--text-primary); }
+  .share-close { background: none; border: none; color: var(--text-secondary); font-size: 1.1rem; cursor: pointer; padding: 0; line-height: 1; }
+  .share-option {
+    display: block; width: 100%; padding: 13px 18px;
+    background: none; border: none; border-bottom: 1px solid var(--border-color);
+    font-family: inherit; font-size: 0.9rem; color: var(--text-primary);
+    text-align: left; cursor: pointer; text-decoration: none;
+    transition: background 0.15s; box-sizing: border-box;
+  }
+  .share-option:last-child { border-bottom: none; border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
+  .share-option:hover { background: rgba(0,206,209,0.08); }
+
   .toast {
     position: fixed;
     bottom: 32px;
@@ -849,7 +877,7 @@
     opacity: 0;
     transition: opacity 0.25s ease, transform 0.25s ease;
     pointer-events: none;
-    z-index: 300;
+    z-index: 500;
     white-space: nowrap;
   }
   .toast.show {
@@ -991,6 +1019,21 @@
   </div>
 
   <p class="footer-note" id="footerNote">Prototype build &middot; 1,838 songs &middot; 570 classic 70s artists &middot; no leaderboard yet</p>
+</div>
+<div class="share-overlay" id="shareOverlay">
+  <div class="share-popup">
+    <div class="share-popup-header">
+      <div class="share-popup-title">Share</div>
+      <button class="share-close" id="shareClose">&#10005;</button>
+    </div>
+    <a class="share-option" id="shareEmail"    href="#" target="_blank" rel="noopener">&#128140; Email</a>
+    <a class="share-option" id="shareMessages" href="#" target="_blank" rel="noopener">&#128172; Messages</a>
+    <a class="share-option" id="shareWhatsApp" href="#" target="_blank" rel="noopener">&#128518; WhatsApp</a>
+    <button class="share-option" id="shareCopy">&#128203; Copy to clipboard</button>
+    <a class="share-option" id="shareFacebook" href="#" target="_blank" rel="noopener">&#128420; Facebook</a>
+    <a class="share-option" id="shareBluesky"  href="#" target="_blank" rel="noopener">&#127756; Bluesky</a>
+    <a class="share-option" id="shareTwitter"  href="#" target="_blank" rel="noopener">&#120143; Post on X / Twitter</a>
+  </div>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -1702,29 +1745,57 @@ function showToast(msg, duration = 2400) {
   toastTimer = setTimeout(() => t.classList.remove('show'), duration);
 }
 
+let _shareText = '', _shareUrl = 'https://timethattune.com';
+
 function shareResult() {
   const score = parseInt(el.resultScore.textContent, 10) || 0;
   const tier  = score <= 15 ? 'Elite ⭐' : score <= 30 ? 'Great 🎯' : 'Good 👍';
   const wrongLine = wrongCount > 0
     ? `\n❌ ${wrongCount} wrong guess${wrongCount > 1 ? 'es' : ''} (+${wrongCount * 20}s)`
     : '';
-  const text = `Time That Tune! 🎵\n${el.artistLabel.textContent}: ${el.artistName.textContent}\n🎵 "${currentSong ? currentSong.title : ''}"\n⏱️ Score: ${score}s — ${tier}${wrongLine}\n\ntimethattune.com`;
+  _shareText = `Time That Tune! 🎵\n${el.artistLabel.textContent}: ${el.artistName.textContent}\n🎵 "${currentSong ? currentSong.title : ''}"\n⏱️ Score: ${score}s — ${tier}${wrongLine}`;
 
-  // execCommand is synchronous and works inside a click handler in all browsers
+  const encFull = encodeURIComponent(_shareText + '\n' + _shareUrl);
+  const encUrl  = encodeURIComponent(_shareUrl);
+
+  document.getElementById('shareEmail').href    = 'mailto:?subject=' + encodeURIComponent('Time That Tune! 🎵') + '&body=' + encFull;
+  document.getElementById('shareWhatsApp').href = 'https://wa.me/?text=' + encFull;
+  document.getElementById('shareFacebook').href = 'https://www.facebook.com/sharer/sharer.php?u=' + encUrl;
+  document.getElementById('shareBluesky').href  = 'https://bsky.app/intent/compose?text=' + encFull;
+  document.getElementById('shareTwitter').href  = 'https://twitter.com/intent/tweet?text=' + encFull;
+
+  // Messages only shown on mobile
+  const msgEl = document.getElementById('shareMessages');
+  if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+    msgEl.href = 'sms:?&body=' + encFull;
+    msgEl.style.display = '';
+  } else {
+    msgEl.style.display = 'none';
+  }
+
+  document.getElementById('shareOverlay').classList.add('open');
+}
+
+function closeSharePopup() { document.getElementById('shareOverlay').classList.remove('open'); }
+
+function safeCopy(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(() => showToast('Copied! 📋'))
+      .catch(() => fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+}
+function fallbackCopy(text) {
   const ta = document.createElement('textarea');
   ta.value = text;
   ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0';
   document.body.appendChild(ta);
   ta.select();
-  const ok = document.execCommand('copy');
-  ta.remove();
-
-  showToast(ok ? 'Score copied to clipboard! 📋' : 'Copy failed — try again');
-
-  // Also try the modern API silently in case execCommand was deprecated
-  if (!ok && navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(() => showToast('Score copied! 📋')).catch(() => {});
-  }
+  try { document.execCommand('copy'); showToast('Copied! 📋'); }
+  catch(e) { prompt('Copy this text:', text); }
+  document.body.removeChild(ta);
 }
 
 function finishRound(answerSeconds) {
@@ -1865,6 +1936,9 @@ el.earlyStopBtn.addEventListener('click', onEarlyStopClick);
 el.scoreInfoBtn.addEventListener('click', () => el.scoreInfoDetail.classList.toggle('hidden'));
 el.againBtn.addEventListener('click', () => startNewRound(false));
 el.shareBtn.addEventListener('click', shareResult);
+document.getElementById('shareClose').addEventListener('click', closeSharePopup);
+document.getElementById('shareCopy').addEventListener('click', () => { safeCopy(_shareText + '\n' + _shareUrl); closeSharePopup(); });
+document.getElementById('shareOverlay').addEventListener('click', e => { if (e.target === document.getElementById('shareOverlay')) closeSharePopup(); });
 
 audioEl.addEventListener('ended', () => {
   if (clipTimer) clearTimeout(clipTimer);
