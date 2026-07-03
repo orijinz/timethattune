@@ -1703,45 +1703,27 @@ function showToast(msg, duration = 2400) {
 }
 
 function shareResult() {
-  const score = parseInt(el.resultScore.textContent, 10);
+  const score = parseInt(el.resultScore.textContent, 10) || 0;
   const tier  = score <= 15 ? 'Elite ⭐' : score <= 30 ? 'Great 🎯' : 'Good 👍';
-  const label = el.artistLabel.textContent;
-  const name  = el.artistName.textContent;
   const wrongLine = wrongCount > 0
-    ? `\n❌ ${wrongCount} wrong guess${wrongCount > 1 ? 'es' : ''} (+${wrongCount * 20}s penalty)`
+    ? `\n❌ ${wrongCount} wrong guess${wrongCount > 1 ? 'es' : ''} (+${wrongCount * 20}s)`
     : '';
+  const text = `Time That Tune! 🎵\n${el.artistLabel.textContent}: ${el.artistName.textContent}\n🎵 "${currentSong ? currentSong.title : ''}"\n⏱️ Score: ${score}s — ${tier}${wrongLine}\n\ntimethattune.com`;
 
-  const text = [
-    'Time That Tune! 🎵',
-    `${label}: ${name}`,
-    `🎵 "${currentSong.title}"`,
-    `⏱️ Score: ${score}s — ${tier}${wrongLine}`,
-    '',
-    'timethattune.com'
-  ].join('\n');
+  // execCommand is synchronous and works inside a click handler in all browsers
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0';
+  document.body.appendChild(ta);
+  ta.select();
+  const ok = document.execCommand('copy');
+  ta.remove();
 
-  function copyFallback() {
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0';
-    document.body.appendChild(ta);
-    ta.focus();
-    ta.select();
-    try {
-      document.execCommand('copy');
-      showToast('Score copied to clipboard!');
-    } catch (e) {
-      showToast('Could not copy — try again');
-    }
-    ta.remove();
-  }
+  showToast(ok ? 'Score copied to clipboard! 📋' : 'Copy failed — try again');
 
-  try {
-    navigator.clipboard.writeText(text)
-      .then(() => showToast('Score copied to clipboard!'))
-      .catch(copyFallback);
-  } catch (e) {
-    copyFallback();
+  // Also try the modern API silently in case execCommand was deprecated
+  if (!ok && navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => showToast('Score copied! 📋')).catch(() => {});
   }
 }
 
