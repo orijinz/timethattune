@@ -1749,11 +1749,33 @@ let _shareText = '', _shareUrl = 'https://timethattune.com';
 
 function shareResult() {
   const score = parseInt(el.resultScore.textContent, 10) || 0;
-  const tier  = score <= 15 ? 'Elite ⭐' : score <= 30 ? 'Great 🎯' : 'Good 👍';
   const wrongLine = wrongCount > 0
     ? `\n❌ ${wrongCount} wrong guess${wrongCount > 1 ? 'es' : ''} (+${wrongCount * 20}s)`
     : '';
-  _shareText = `Time That Tune! 🎵\n${el.artistLabel.textContent}: ${el.artistName.textContent}\n⏱️ Score: ${score}s — ${tier}${wrongLine}`;
+
+  // Build entity label from currentSong (avoids stale DOM values)
+  let entity = currentSong ? currentSong.artist : 'a song';
+  let type = 'song';
+  if (currentSong && currentSong.decade === 'themes') {
+    const era = Math.floor(currentSong.year / 10) * 10 + 's';
+    entity = era + ' ' + currentSong.artist;
+    type = 'theme';
+  } else if (currentSong && currentSong.decade === 'showtunes') {
+    type = 'showtune';
+  }
+
+  const templates = [
+    `🎵 I just named a ${entity} ${type} in Time That Tune — score: ${score}s. Your move.`,
+    `🎶 Just nailed a ${entity} ${type} on Time That Tune! Score: ${score}s. Think you can beat it?`,
+    `⏱️ Time That Tune: ${entity} ${type}, ${score}s. Up for the challenge? 🎵`,
+    `🎤 ${entity} on Time That Tune — got it in ${score}s. Your turn!`,
+    `🎵 My Time That Tune score on a ${entity} ${type}: ${score}s. Can you do better?`,
+    `🎶 Time That Tune: guessed a ${entity} ${type} in ${score}s. Think you know your music? 😏`,
+    `⏱️ Played Time That Tune — ${score}s on a ${entity} ${type}. Beat that! 🎵`,
+    `🎵 Time That Tune challenge — ${entity}, score: ${score}s. Your move! 🎶`,
+  ];
+
+  _shareText = templates[Math.floor(Math.random() * templates.length)] + wrongLine;
 
   const encFull = encodeURIComponent(_shareText + '\n' + _shareUrl);
   const encUrl  = encodeURIComponent(_shareUrl);
