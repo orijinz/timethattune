@@ -1318,8 +1318,19 @@ function shuffle(arr) {
   return shuffleWith(arr, Math.random);
 }
 
+let lastPlayedArtist = null;
+
+function baseArtist(name) {
+  return name.split(/\s+(?:featuring|feat\.?|ft\.?|with)\s+/i)[0].trim().toLowerCase();
+}
+
 function pickRandomSong() {
-  return SONGS[Math.floor(Math.random() * SONGS.length)];
+  const pool = (SONGS.length > 10 && lastPlayedArtist)
+    ? SONGS.filter(s => baseArtist(s.artist) !== lastPlayedArtist)
+    : SONGS;
+  const song = pool[Math.floor(Math.random() * pool.length)];
+  lastPlayedArtist = baseArtist(song.artist);
+  return song;
 }
 
 // ---- Daily puzzle: same song for every player on a given calendar day ----
