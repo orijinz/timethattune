@@ -1753,7 +1753,7 @@ function shareResult() {
   const wrongLine = wrongCount > 0
     ? `\n❌ ${wrongCount} wrong guess${wrongCount > 1 ? 'es' : ''} (+${wrongCount * 20}s)`
     : '';
-  _shareText = `Time That Tune! 🎵\n${el.artistLabel.textContent}: ${el.artistName.textContent}\n🎵 "${currentSong ? currentSong.song : ''}"\n⏱️ Score: ${score}s — ${tier}${wrongLine}`;
+  _shareText = `Time That Tune! 🎵\n${el.artistLabel.textContent}: ${el.artistName.textContent}\n⏱️ Score: ${score}s — ${tier}${wrongLine}`;
 
   const encFull = encodeURIComponent(_shareText + '\n' + _shareUrl);
   const encUrl  = encodeURIComponent(_shareUrl);
