@@ -982,7 +982,7 @@
         <a id="appleLink" href="#" target="_blank" rel="noopener">Apple Music</a>
       </div>
       <p class="stats-row" id="statsRow"></p>
-      <button class="share-btn" id="shareBtn" onclick="shareResult()">
+      <button class="share-btn" id="shareBtn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         Share My Score
       </button>
@@ -1110,6 +1110,7 @@ const el = {
   spotifyLink: document.getElementById('spotifyLink'),
   appleLink: document.getElementById('appleLink'),
   againBtn: document.getElementById('againBtn'),
+  shareBtn: document.getElementById('shareBtn'),
   statsRow: document.getElementById('statsRow'),
   staffNotes: Array.from(document.querySelectorAll('.staff-note')),
   footerNote: document.getElementById('footerNote'),
@@ -1693,7 +1694,7 @@ function showToast(msg, duration = 2400) {
 function shareResult() {
   const score = parseInt(el.resultScore.textContent, 10);
   const tier  = score <= 15 ? 'Elite ⭐' : score <= 30 ? 'Great 🎯' : 'Good 👍';
-  const label = el.artistLabel.textContent;   // "Today's artist" / "Today's show" / "Today's category"
+  const label = el.artistLabel.textContent;
   const name  = el.artistName.textContent;
   const wrongLine = wrongCount > 0
     ? `\n❌ ${wrongCount} wrong guess${wrongCount > 1 ? 'es' : ''} (+${wrongCount * 20}s penalty)`
@@ -1708,9 +1709,29 @@ function shareResult() {
     'timethattune.com'
   ].join('\n');
 
-  navigator.clipboard.writeText(text)
-    .then(() => showToast('Score copied to clipboard!'))
-    .catch(() => showToast('Copy failed — try selecting the text manually'));
+  function copyFallback() {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try {
+      document.execCommand('copy');
+      showToast('Score copied to clipboard!');
+    } catch (e) {
+      showToast('Could not copy — try again');
+    }
+    ta.remove();
+  }
+
+  try {
+    navigator.clipboard.writeText(text)
+      .then(() => showToast('Score copied to clipboard!'))
+      .catch(copyFallback);
+  } catch (e) {
+    copyFallback();
+  }
 }
 
 function finishRound(answerSeconds) {
@@ -1850,6 +1871,7 @@ el.playBtn.addEventListener('click', onPlayClick);
 el.earlyStopBtn.addEventListener('click', onEarlyStopClick);
 el.scoreInfoBtn.addEventListener('click', () => el.scoreInfoDetail.classList.toggle('hidden'));
 el.againBtn.addEventListener('click', () => startNewRound(false));
+el.shareBtn.addEventListener('click', shareResult);
 
 audioEl.addEventListener('ended', () => {
   if (clipTimer) clearTimeout(clipTimer);
