@@ -1886,6 +1886,8 @@ function shareResult() {
   const score = parseInt(el.resultScore.textContent, 10) || 0;
 
   // Build subject label: "70s Chic song", "Hamilton showtune", "1970s TV/Movie Theme"
+  // Strip leading "The " so "a The Clash song" → "a 80s Clash song"
+  const stripThe = name => name.replace(/^The\s+/i, '');
   let subject;
   if (!currentSong) {
     subject = 'a song';
@@ -1893,10 +1895,10 @@ function shareResult() {
     const era = Math.floor(currentSong.year / 10) * 10 + 's';
     subject = `${era} TV/Movie Theme`;
   } else if (currentSong.decade === 'showtunes') {
-    subject = `${currentSong.artist} showtune`;
+    subject = `${stripThe(currentSong.artist)} showtune`;
   } else {
     const label = CATALOG_META[currentSong.decade]?.label || currentSong.decade;
-    subject = `${label} ${currentSong.artist} song`;
+    subject = `${label} ${stripThe(currentSong.artist)} song`;
   }
 
   const templates = [
