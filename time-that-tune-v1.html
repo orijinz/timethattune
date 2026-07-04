@@ -1023,7 +1023,7 @@
 
 <div class="app-shell">
   <div class="game-card">
-    <img class="logo-img" src="logo-v3-black.png" alt="Time That Tune!">
+    <img class="logo-img" src="https://cdn.jsdelivr.net/gh/orijinz/timethattune@main/logo-v3-black.png" alt="Time That Tune!">
     <div class="meta-row">
       <div class="decade-select" id="decadeSelect">
         <button class="decade-badge" id="decadeBadge" type="button" aria-haspopup="listbox" aria-expanded="false">
@@ -1168,7 +1168,7 @@
   <div class="help-modal">
 
     <div class="help-logo-wrap">
-      <img src="logo-v3-black.png" alt="Time That Tune!">
+      <img src="https://cdn.jsdelivr.net/gh/orijinz/timethattune@main/logo-v3-black.png" alt="Time That Tune!">
     </div>
 
     <p style="text-align:center;font-size:0.9rem;color:var(--text-secondary);margin:0 0 6px;">
@@ -1885,26 +1885,29 @@ let _shareText = '', _shareUrl = 'https://timethattune.com';
 function shareResult() {
   const score = parseInt(el.resultScore.textContent, 10) || 0;
 
-  // Build entity label from currentSong (avoids stale DOM values)
-  let entity = currentSong ? currentSong.artist : 'a song';
-  let type = 'song';
-  if (currentSong && currentSong.decade === 'themes') {
+  // Build subject label: "70s Chic song", "Hamilton showtune", "1970s TV/Movie Theme"
+  let subject;
+  if (!currentSong) {
+    subject = 'a song';
+  } else if (currentSong.decade === 'themes') {
     const era = Math.floor(currentSong.year / 10) * 10 + 's';
-    entity = era + ' ' + currentSong.artist;
-    type = 'theme';
-  } else if (currentSong && currentSong.decade === 'showtunes') {
-    type = 'showtune';
+    subject = `${era} TV/Movie Theme`;
+  } else if (currentSong.decade === 'showtunes') {
+    subject = `${currentSong.artist} showtune`;
+  } else {
+    const label = CATALOG_META[currentSong.decade]?.label || currentSong.decade;
+    subject = `${label} ${currentSong.artist} song`;
   }
 
   const templates = [
-    `🎵 I just named a ${entity} ${type} in Time That Tune — score: ${score}s. Your move.`,
-    `🎶 Just nailed a ${entity} ${type} on Time That Tune! Score: ${score}s. Think you can beat it?`,
-    `⏱️ Time That Tune: ${entity} ${type}, ${score}s. Up for the challenge? 🎵`,
-    `🎤 ${entity} on Time That Tune — got it in ${score}s. Your turn!`,
-    `🎵 My Time That Tune score on a ${entity} ${type}: ${score}s. Can you do better?`,
-    `🎶 Time That Tune: guessed a ${entity} ${type} in ${score}s. Think you know your music? 😏`,
-    `⏱️ Played Time That Tune — ${score}s on a ${entity} ${type}. Beat that! 🎵`,
-    `🎵 Time That Tune challenge — ${entity}, score: ${score}s. Your move! 🎶`,
+    `🎵 I just named a ${subject} in Time That Tune — score: ${score}. Your move.`,
+    `🎶 Just nailed a ${subject} on Time That Tune! Score: ${score}. Think you can beat it?`,
+    `⏱️ Time That Tune: ${subject}, score ${score}. Up for the challenge? 🎵`,
+    `🎤 ${subject} on Time That Tune — my score was ${score}. Your turn!`,
+    `🎵 My Time That Tune score on a ${subject}: ${score}. Can you do better?`,
+    `🎶 Time That Tune: ${subject} — my score was ${score}. Think you know your music? 😏`,
+    `⏱️ Played Time That Tune — got a ${score} score on a ${subject}. Beat that! 🎵`,
+    `🎵 Time That Tune challenge — ${subject}, score: ${score}. Your move! 🎶`,
   ];
 
   _shareText = templates[Math.floor(Math.random() * templates.length)];
@@ -1952,6 +1955,27 @@ function fallbackCopy(text) {
   document.body.removeChild(ta);
 }
 
+// ---- Wix iframe communication ----
+let wixMember = null; // { memberId, isPremium, displayName } set by parent frame
+
+function sendResultToWix(score) {
+  if (window.parent === window) return;
+  window.parent.postMessage({
+    type: 'ttt_result',
+    decade: currentDecade,
+    puzzleNumber: daysSinceLaunch() + 1,
+    puzzleDate: getTodayStr(),
+    song: currentSong.song,
+    artist: currentSong.artist,
+    year: currentSong.year,
+    score,
+    listenedSeconds,
+    wrongGuesses: wrongCount,
+    stoppedEarly,
+    isDailyRound,
+  }, '*');
+}
+
 function finishRound(answerSeconds) {
   el.optionsGrid.querySelectorAll('button').forEach(b => { b.disabled = true; });
   el.answerTimer.classList.add('hidden');
@@ -1987,6 +2011,7 @@ function finishRound(answerSeconds) {
 
   el.resultPanel.classList.remove('hidden');
   recordCompletedRound();
+  sendResultToWix(score);
   requestAnimationFrame(() => {
     el.resultPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
@@ -2113,49 +2138,50 @@ audioEl.addEventListener('ended', () => {
 
 // ---- Catalog loading: fetched at runtime so the HTML doesn't have to embed ----
 // ---- thousands of songs inline. Requires serving over http(s), not file://. ----
+const CDN = 'https://cdn.jsdelivr.net/gh/orijinz/timethattune@main/';
 const CATALOG_META = {
   '60s': {
-    file: 'ttt-songs-60s-v1.json',
+    file: CDN + 'ttt-songs-60s-v1.json',
     label: '60s',
     footerNote: 'Prototype build · 1,162 songs · 587 classic 60s artists · no leaderboard yet',
   },
   '70s': {
-    file: 'ttt-songs-70s-v2.json',
+    file: CDN + 'ttt-songs-70s-v2.json',
     label: '70s',
     footerNote: 'Prototype build · 1,838 songs · 570 classic 70s artists · no leaderboard yet',
   },
   '2000s': {
-    file: 'ttt-songs-2000s-v1.json',
+    file: CDN + 'ttt-songs-2000s-v1.json',
     label: '2000s',
     footerNote: 'Prototype build · 1,100 songs · 575 artists from the 2000s · no leaderboard yet',
   },
   '80s': {
-    file: 'ttt-songs-80s-v1.json',
+    file: CDN + 'ttt-songs-80s-v1.json',
     label: '80s',
     footerNote: 'Prototype build · 1,111 songs · 521 classic 80s artists · no leaderboard yet',
   },
   '90s': {
-    file: 'ttt-songs-90s-v1.json',
+    file: CDN + 'ttt-songs-90s-v1.json',
     label: '90s',
     footerNote: 'Prototype build · 1,097 songs · 611 classic 90s artists · no leaderboard yet',
   },
   '2010s': {
-    file: 'ttt-songs-2010s-v1.json',
+    file: CDN + 'ttt-songs-2010s-v1.json',
     label: '2010s',
     footerNote: 'Prototype build · 1,132 songs · 703 classic 2010s artists · no leaderboard yet',
   },
   '2020s': {
-    file: 'ttt-songs-2020s-v1.json',
+    file: CDN + 'ttt-songs-2020s-v1.json',
     label: '2020s',
     footerNote: 'Prototype build · 521 songs · 362 classic 2020s artists · no leaderboard yet',
   },
   'showtunes': {
-    file: 'ttt-songs-showtunes-v1.json',
+    file: CDN + 'ttt-songs-showtunes-v1.json',
     label: 'Showtunes',
     footerNote: 'Prototype build · 1,011 songs · 188 Broadway shows · no leaderboard yet',
   },
   'themes': {
-    file: 'ttt-songs-themes-v1.json',
+    file: CDN + 'ttt-songs-themes-v1.json',
     label: 'Themes',
     footerNote: '1,065 themes · 14 genre categories · no leaderboard yet',
   },
@@ -2170,6 +2196,14 @@ async function loadCatalog(decade) {
   currentDecade = decade;
 }
 
+window.addEventListener('message', function(e) {
+  const d = e.data;
+  if (!d || typeof d !== 'object') return;
+  if (d.type === 'ttt_member') {
+    wixMember = { memberId: d.memberId, isPremium: d.isPremium, displayName: d.displayName };
+  }
+});
+
 async function init() {
   el.playBtn.disabled = true;
   el.artistName.textContent = 'Loading…';
@@ -2182,6 +2216,9 @@ async function init() {
   }
   applyDecadeUI('70s');
   startNewRound(true);
+  if (window.parent !== window) {
+    window.parent.postMessage({ type: 'ttt_ready' }, '*');
+  }
 }
 
 init();
