@@ -14,6 +14,9 @@
     --bg-elevated: #111827;
     --surface-dim: #1A2238;
     --border-color: #243050;
+    --tempo: #E8A020;
+    --tempo-dim: rgba(232,160,32,0.12);
+    --tempo-border: rgba(232,160,32,0.35);
     --text-primary: #F8FAFC;
     --text-secondary: rgba(248,250,252,0.65);
     --text-tertiary: rgba(248,250,252,0.4);
@@ -1017,6 +1020,143 @@
     }
   }
 
+  /* ---- Decade gating ---- */
+  .decade-option.locked { color: var(--text-tertiary); }
+  .decade-option.locked .decade-lock { color: var(--tempo); margin-right: 5px; font-size: 0.75rem; }
+  .decade-option.played-today { color: var(--accent-teal); }
+  .decade-option.played-today .played-label { font-size: 0.72em; opacity: 0.75; margin-left: 4px; }
+
+  .decade-upgrade-btn {
+    display: block; width: fit-content; max-width: 92%;
+    margin: 8px auto 4px; padding: 9px 18px;
+    background: var(--tempo); border: none; border-radius: 9999px;
+    color: #0A0F1C; font-family: inherit; font-size: 0.75rem; font-weight: 700;
+    line-height: 1.4; text-align: center; cursor: pointer;
+    box-shadow: 0 2px 12px rgba(232,160,32,0.35);
+    transition: background 150ms var(--ease);
+  }
+  .decade-upgrade-btn:hover { background: #f0b030; }
+
+  /* ---- Post-game upgrade CTA strip ---- */
+  .upgrade-cta-strip {
+    margin-top: 14px; padding: 14px;
+    background: var(--bg-elevated); border: 1px solid var(--tempo-border);
+    border-radius: var(--radius-lg);
+  }
+  .upgrade-cta-inner { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+  .upgrade-cta-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
+  .upgrade-cta-headline { font-size: 0.88rem; font-weight: 700; margin-bottom: 4px; }
+  .upgrade-cta-body { font-size: 0.74rem; color: var(--text-secondary); line-height: 1.5; }
+  .upgrade-cta-btn {
+    display: block; width: 100%; padding: 11px;
+    background: var(--tempo); border: none; border-radius: var(--radius-md);
+    color: #0A0F1C; font-family: inherit; font-size: 0.85rem; font-weight: 700;
+    cursor: pointer; transition: background 150ms var(--ease);
+  }
+  .upgrade-cta-btn:hover { background: #f0b030; }
+
+  /* ---- Upgrade overlay ---- */
+  #upgradeOverlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.7);
+    display: flex; align-items: flex-end; justify-content: center;
+  }
+  .upgrade-panel {
+    width: 100%; max-width: 480px; max-height: 92vh;
+    background: var(--bg-elevated); border-radius: 18px 18px 0 0;
+    border-top: 1px solid var(--border-color);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .upgrade-panel-scroll { overflow-y: auto; flex: 1; scrollbar-width: thin; }
+  .upgrade-panel-close-row {
+    display: flex; justify-content: flex-end; padding: 10px 14px 0; flex-shrink: 0;
+  }
+  .upgrade-panel-close {
+    background: none; border: none; color: var(--text-tertiary);
+    font-size: 0.8rem; cursor: pointer; font-family: inherit; padding: 4px 8px;
+  }
+  .upgrade-panel-header {
+    padding: 4px 20px 16px; text-align: center;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .upgrade-panel-header img { width: 110px; margin: 0 auto 8px; display: block; }
+  .upgrade-panel-headline { font-size: 1.1rem; font-weight: 800; margin-bottom: 4px; }
+  .upgrade-panel-sub { font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4; margin-bottom: 12px; }
+  .upgrade-panel-cta-top {
+    display: block; width: 100%; padding: 11px;
+    background: var(--tempo); border: none; border-radius: var(--radius-md);
+    color: #0A0F1C; font-family: inherit; font-size: 0.85rem; font-weight: 700;
+    cursor: pointer; margin-bottom: 4px;
+  }
+  .upgrade-price-hint { font-size: 0.67rem; color: var(--text-tertiary); text-align: center; }
+  .upgrade-feature-list { padding: 4px 0; }
+  .upgrade-feature {
+    padding: 13px 16px; border-bottom: 1px solid var(--border-color);
+  }
+  .upgrade-feature:last-child { border-bottom: none; }
+  .upgrade-feature-hd { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+  .upgrade-feature-icon {
+    width: 28px; height: 28px; border-radius: 7px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 0.9rem;
+    background: var(--tempo-dim); border: 1px solid var(--tempo-border);
+  }
+  .upgrade-feature-icon.teal { background: rgba(0,206,209,0.12); border-color: rgba(0,206,209,0.25); }
+  .upgrade-feature-icon.blue { background: rgba(0,168,255,0.12); border-color: rgba(0,168,255,0.25); }
+  .upgrade-feature-icon.purple { background: rgba(160,32,240,0.12); border-color: rgba(160,32,240,0.25); }
+  .upgrade-feature-title { font-size: 0.85rem; font-weight: 700; }
+  .upgrade-feature-desc { font-size: 0.72rem; color: var(--text-secondary); line-height: 1.45; margin-bottom: 8px; }
+  /* placeholder graphic base */
+  .ph { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 9px 11px; font-size: 0.72rem; }
+  .ph-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-variant-numeric: tabular-nums; }
+  .ph-row:not(:last-child) { border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .ph-rank { width: 14px; color: var(--text-tertiary); font-size: 0.65rem; }
+  .ph-rank.gold { color: #F5C542; }
+  .ph-name { flex: 1; color: var(--text-secondary); }
+  .ph-name.you { color: var(--accent-teal); font-weight: 600; }
+  .ph-val { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .ph-bar-group { display: flex; align-items: flex-end; gap: 4px; height: 34px; margin-top: 6px; }
+  .ph-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .ph-bar { width: 100%; border-radius: 3px 3px 0 0; background: var(--accent-teal); }
+  .ph-bar-lbl { font-size: 0.55rem; color: var(--text-tertiary); }
+  .ph-stat-row { display: flex; gap: 6px; margin-bottom: 8px; }
+  .ph-stat { flex: 1; background: var(--surface-dim); border-radius: 6px; padding: 6px; text-align: center; }
+  .ph-stat-n { font-size: 1.1rem; font-weight: 800; color: var(--accent-teal); }
+  .ph-stat-l { font-size: 0.58rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.04em; }
+  .ph-cal { display: grid; grid-template-columns: repeat(7,1fr); gap: 3px; }
+  .ph-cal-day { aspect-ratio:1; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:0.6rem; font-weight:600; }
+  .ph-cal-day.p { background:rgba(0,206,209,0.15); color:var(--accent-teal); border:1px solid rgba(0,206,209,0.3); }
+  .ph-cal-day.u { background:var(--tempo-dim); color:var(--tempo); border:1px solid var(--tempo-border); }
+  .ph-cal-day.t { background:var(--accent-teal); color:#0A0F1C; font-weight:800; }
+  .ph-cal-day.f { color:var(--text-tertiary); }
+  /* sticky overlay footer */
+  .upgrade-panel-footer {
+    padding: 12px 16px 20px; border-top: 1px solid var(--border-color);
+    background: var(--bg-elevated); flex-shrink: 0;
+  }
+  .upgrade-price-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .upgrade-price-opt {
+    flex: 1; padding: 8px; border-radius: var(--radius-md);
+    border: 1px solid var(--border-color); background: var(--bg-card);
+    cursor: pointer; text-align: center;
+  }
+  .upgrade-price-opt.sel { border-color: var(--tempo); background: var(--tempo-dim); }
+  .upgrade-price-amt { font-size: 0.9rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .upgrade-price-per { font-size: 0.62rem; color: var(--text-tertiary); }
+  .upgrade-price-save { font-size: 0.6rem; color: var(--tempo); font-weight: 600; margin-top: 1px; }
+  .upgrade-go-btn {
+    display: block; width: 100%; padding: 12px;
+    background: var(--tempo); border: none; border-radius: var(--radius-md);
+    color: #0A0F1C; font-family: inherit; font-size: 0.88rem; font-weight: 700;
+    cursor: pointer; margin-bottom: 8px; transition: background 150ms var(--ease);
+  }
+  .upgrade-go-btn:hover { background: #f0b030; }
+  .upgrade-dismiss {
+    display: block; width: 100%; background: none; border: none;
+    color: var(--text-tertiary); font-family: inherit; font-size: 0.75rem;
+    cursor: pointer; text-align: center;
+  }
+
 </style>
 </head>
 <body>
@@ -1039,6 +1179,9 @@
           <button class="decade-option" type="button" role="option" data-decade="2020s">2020s</button>
           <button class="decade-option" type="button" role="option" data-decade="showtunes">Showtunes</button>
           <button class="decade-option" type="button" role="option" data-decade="themes">TV/Movie Themes</button>
+          <button class="decade-upgrade-btn" id="decadeUpgradeBtn" type="button">
+            Unlock all 8 daily games &amp; get more with Tempo &mdash; 7 days free
+          </button>
         </div>
       </div>
       <div class="meta-right">
@@ -1128,6 +1271,16 @@
         </button>
       </div>
       <button class="again-btn" id="againBtn">Play Another Song</button>
+      <div class="upgrade-cta-strip hidden" id="upgradeCTAStrip">
+        <div class="upgrade-cta-inner">
+          <span class="upgrade-cta-icon">&#127925;</span>
+          <div>
+            <p class="upgrade-cta-headline">Want more?</p>
+            <p class="upgrade-cta-body">Enjoy your free play today? Unlock 8 more catalogs, no ads, and a host of premium features with a Tempo plan. The first 7 days are free. Tap the Go Tempo button to get details and sign up!</p>
+          </div>
+        </div>
+        <button class="upgrade-cta-btn" id="upgradeCTABtn">Go Tempo &rarr;</button>
+      </div>
     </div>
   </div>
 
@@ -1160,6 +1313,138 @@
       <p class="stats-coming-soon-icon">&#128202;</p>
       <p class="stats-coming-soon-title">Stats coming soon</p>
       <p class="stats-coming-soon-sub">Personal bests, streaks, per-decade records, and group challenges will be available when Time That Tune launches.</p>
+    </div>
+  </div>
+</div>
+
+<div class="hidden" id="upgradeOverlay" role="dialog" aria-modal="true" aria-label="Upgrade to Tempo">
+  <div class="upgrade-panel">
+    <div class="upgrade-panel-close-row">
+      <button class="upgrade-panel-close" id="upgradeOverlayClose" type="button">&#10005; Close</button>
+    </div>
+    <div class="upgrade-panel-scroll">
+      <div class="upgrade-panel-header">
+        <img src="https://cdn.jsdelivr.net/gh/orijinz/timethattune@main/logo-v3-black.png" alt="Time That Tune">
+        <p class="upgrade-panel-headline">Upgrade to Tempo</p>
+        <p class="upgrade-panel-sub">Unlock all daily games, no ads, leaderboards, and a lot more &mdash; 7 days free, cancel any time.</p>
+        <button class="upgrade-panel-cta-top" id="upgradeTopBtn" type="button">Start 7-day free trial &rarr;</button>
+        <p class="upgrade-price-hint">$2.99/month &bull; or $24.99/year (save 30%) &bull; cancel any time</p>
+      </div>
+      <div class="upgrade-feature-list">
+
+        <div class="upgrade-feature">
+          <div class="upgrade-feature-hd">
+            <span class="upgrade-feature-icon">&#127925;</span>
+            <span class="upgrade-feature-title">All 9 Catalogs, Every Day</span>
+          </div>
+          <p class="upgrade-feature-desc">Free players get one decade per day. Tempo unlocks all 9 &mdash; 60s, 70s, 80s, 90s, 2000s, 2010s, 2020s, Showtunes, and TV/Movie Themes &mdash; every single day.</p>
+          <div class="ph">
+            <div class="ph-bar-group">
+              <div class="ph-bar-col"><div class="ph-bar" style="height:28px;opacity:0.35"></div><div class="ph-bar-lbl">60s</div></div>
+              <div class="ph-bar-col"><div class="ph-bar" style="height:34px"></div><div class="ph-bar-lbl">70s</div></div>
+              <div class="ph-bar-col"><div class="ph-bar" style="height:30px;opacity:0.35"></div><div class="ph-bar-lbl">80s</div></div>
+              <div class="ph-bar-col"><div class="ph-bar" style="height:22px;opacity:0.35"></div><div class="ph-bar-lbl">90s</div></div>
+              <div class="ph-bar-col"><div class="ph-bar" style="height:18px;opacity:0.35"></div><div class="ph-bar-lbl">00s</div></div>
+              <div class="ph-bar-col"><div class="ph-bar" style="height:14px;opacity:0.35"></div><div class="ph-bar-lbl">10s</div></div>
+              <div class="ph-bar-col"><div class="ph-bar" style="height:10px;opacity:0.35"></div><div class="ph-bar-lbl">20s</div></div>
+              <div class="ph-bar-col"><div class="ph-bar" style="height:20px;background:var(--tempo);opacity:0.35"></div><div class="ph-bar-lbl">SH</div></div>
+              <div class="ph-bar-col"><div class="ph-bar" style="height:16px;background:var(--tempo);opacity:0.35"></div><div class="ph-bar-lbl">TV</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="upgrade-feature">
+          <div class="upgrade-feature-hd">
+            <span class="upgrade-feature-icon teal">&#127942;</span>
+            <span class="upgrade-feature-title">Daily Leaderboards</span>
+          </div>
+          <p class="upgrade-feature-desc">See how your score stacks up against every player who guessed today's song. A fresh ranking for every catalog, every day.</p>
+          <div class="ph">
+            <div class="ph-row"><span class="ph-rank gold">1</span><span class="ph-name">MusicMaven</span><span class="ph-val">94</span></div>
+            <div class="ph-row"><span class="ph-rank gold">2</span><span class="ph-name">RetroRadar</span><span class="ph-val">88</span></div>
+            <div class="ph-row"><span class="ph-rank" style="color:var(--accent-teal)">3</span><span class="ph-name you">You</span><span class="ph-val" style="color:var(--accent-teal)">81</span></div>
+            <div class="ph-row"><span class="ph-rank">4</span><span class="ph-name">DiscoKing</span><span class="ph-val">76</span></div>
+            <div class="ph-row"><span class="ph-rank">5</span><span class="ph-name">Funkadelic</span><span class="ph-val">71</span></div>
+          </div>
+        </div>
+
+        <div class="upgrade-feature">
+          <div class="upgrade-feature-hd">
+            <span class="upgrade-feature-icon blue">&#128202;</span>
+            <span class="upgrade-feature-title">Personal Stats</span>
+          </div>
+          <p class="upgrade-feature-desc">Track your streak, best score, average reaction time, and your strongest decade &mdash; all in one place.</p>
+          <div class="ph">
+            <div class="ph-stat-row">
+              <div class="ph-stat"><div class="ph-stat-n">14</div><div class="ph-stat-l">Streak</div></div>
+              <div class="ph-stat"><div class="ph-stat-n">94</div><div class="ph-stat-l">Best Score</div></div>
+              <div class="ph-stat"><div class="ph-stat-n">4.2s</div><div class="ph-stat-l">Avg. Time</div></div>
+            </div>
+            <div class="ph-bar-group" style="height:38px">
+              <div class="ph-bar-col"><div class="ph-bar" style="height:18px;background:rgba(0,168,255,0.5)"></div><div class="ph-bar-lbl">M</div></div>
+              <div class="ph-bar-col"><div class="ph-bar" style="height:28px;background:rgba(0,168,255,0.5)"></div><div class="ph-bar-lbl">T</div></div>
+              <div class="ph-bar-col"><div class="ph-bar" style="height:22px;background:rgba(0,168,255,0.5)"></div><div class="ph-bar-lbl">W</div></div>
+              <div class="ph-bar-col"><div class="ph-bar" style="height:34px;background:rgba(0,168,255,0.7)"></div><div class="ph-bar-lbl">T</div></div>
+              <div class="ph-bar-col"><div class="ph-bar" style="height:30px;background:rgba(0,168,255,0.7)"></div><div class="ph-bar-lbl">F</div></div>
+              <div class="ph-bar-col"><div class="ph-bar" style="height:38px;background:rgba(0,168,255,0.9)"></div><div class="ph-bar-lbl">S</div></div>
+              <div class="ph-bar-col"><div class="ph-bar" style="height:26px;background:rgba(0,168,255,0.5)"></div><div class="ph-bar-lbl">S</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="upgrade-feature">
+          <div class="upgrade-feature-hd">
+            <span class="upgrade-feature-icon purple">&#128101;</span>
+            <span class="upgrade-feature-title">Groups &amp; Friend Challenges</span>
+          </div>
+          <p class="upgrade-feature-desc">Create a private group &mdash; family, friends, colleagues &mdash; and see everyone's daily scores on a shared leaderboard. Bragging rights guaranteed.</p>
+          <div class="ph">
+            <div class="ph-row" style="margin-bottom:4px"><span class="ph-name" style="font-weight:700;color:var(--text-primary)">&#128101; Family Music Nerds</span><span class="ph-val" style="font-size:0.65rem;color:var(--text-tertiary)">7 members</span></div>
+            <div class="ph-row"><span class="ph-rank gold">1</span><span class="ph-name">Dad</span><span class="ph-val">91</span></div>
+            <div class="ph-row"><span class="ph-rank" style="color:var(--accent-teal)">2</span><span class="ph-name you">You</span><span class="ph-val" style="color:var(--accent-teal)">81</span></div>
+            <div class="ph-row"><span class="ph-rank">3</span><span class="ph-name">Mom</span><span class="ph-val">74</span></div>
+            <div class="ph-row"><span class="ph-rank">4</span><span class="ph-name">Sister</span><span class="ph-val">62</span></div>
+          </div>
+        </div>
+
+        <div class="upgrade-feature">
+          <div class="upgrade-feature-hd">
+            <span class="upgrade-feature-icon">&#128683;</span>
+            <span class="upgrade-feature-title">No Ads</span>
+          </div>
+          <p class="upgrade-feature-desc">Free players see a short ad before each game. Tempo members jump straight to the music.</p>
+        </div>
+
+        <div class="upgrade-feature">
+          <div class="upgrade-feature-hd">
+            <span class="upgrade-feature-icon teal">&#128197;</span>
+            <span class="upgrade-feature-title">Streaks &amp; Back-Catalog (coming soon)</span>
+          </div>
+          <p class="upgrade-feature-desc">Keep your streak alive with a daily reminder, then explore the full back-catalog when you want to play more than today's puzzle.</p>
+          <div class="ph">
+            <div class="ph-cal">
+              <div class="ph-cal-day f">23</div><div class="ph-cal-day f">24</div><div class="ph-cal-day p">25</div><div class="ph-cal-day p">26</div><div class="ph-cal-day p">27</div><div class="ph-cal-day p">28</div><div class="ph-cal-day p">29</div>
+              <div class="ph-cal-day p">30</div><div class="ph-cal-day u">1</div><div class="ph-cal-day u">2</div><div class="ph-cal-day u">3</div><div class="ph-cal-day u">4</div><div class="ph-cal-day t">5</div><div class="ph-cal-day f">6</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="upgrade-panel-footer">
+      <div class="upgrade-price-row">
+        <div class="upgrade-price-opt" id="upgradePriceMonthly" onclick="selectPrice('monthly')">
+          <div class="upgrade-price-amt">$2.99</div>
+          <div class="upgrade-price-per">per month</div>
+        </div>
+        <div class="upgrade-price-opt sel" id="upgradePriceAnnual" onclick="selectPrice('annual')">
+          <div class="upgrade-price-amt">$24.99</div>
+          <div class="upgrade-price-per">per year</div>
+          <div class="upgrade-price-save">Save 30%</div>
+        </div>
+      </div>
+      <button class="upgrade-go-btn" id="upgradeGoBtn" type="button">Start 7-day free trial &rarr;</button>
+      <button class="upgrade-dismiss" id="upgradeOverlayDismiss" type="button">Maybe later</button>
     </div>
   </div>
 </div>
@@ -1359,9 +1644,17 @@ function getTodayStr() {
 
 function loadStats() {
   try {
-    return JSON.parse(localStorage.getItem('ttt_stats_v1')) || { gamesPlayed: 0, streak: 0, bestStreak: 0, lastPlayedDate: null };
+    const s = JSON.parse(localStorage.getItem('ttt_stats_v1')) || {};
+    const today = getTodayStr();
+    return {
+      gamesPlayed: s.gamesPlayed || 0,
+      streak: s.streak || 0,
+      bestStreak: s.bestStreak || 0,
+      lastPlayedDate: s.lastPlayedDate || null,
+      decadePlayedToday: s.lastPlayedDate === today ? (s.decadePlayedToday || null) : null,
+    };
   } catch (e) {
-    return { gamesPlayed: 0, streak: 0, bestStreak: 0, lastPlayedDate: null };
+    return { gamesPlayed: 0, streak: 0, bestStreak: 0, lastPlayedDate: null, decadePlayedToday: null };
   }
 }
 
@@ -1384,12 +1677,64 @@ function recordCompletedRound() {
     stats.lastPlayedDate = today;
     stats.bestStreak = Math.max(stats.bestStreak, stats.streak);
   }
+  if (!stats.decadePlayedToday) stats.decadePlayedToday = currentDecade;
   saveStats();
   renderStats();
+  updateDecadeGating();
+  if (!isPremiumUser()) {
+    document.getElementById('upgradeCTAStrip').classList.remove('hidden');
+  }
 }
 
 function renderStats() {
   el.statsRow.textContent = `\u{1F525} ${stats.streak} day streak · ${stats.gamesPlayed} games played · best streak ${stats.bestStreak}`;
+}
+
+// ---- Freemium gating ----
+function isPremiumUser() {
+  return wixMember != null && wixMember.isPremium === true;
+}
+
+function hasPlayedToday() {
+  return stats.lastPlayedDate === getTodayStr();
+}
+
+function isDecadeLocked(decade) {
+  if (isPremiumUser()) return false;
+  const freeDecade = stats.decadePlayedToday || currentDecade;
+  return decade !== freeDecade;
+}
+
+function updateDecadeGating() {
+  document.querySelectorAll('#decadeDropdown .decade-option[data-decade]').forEach(btn => {
+    const d = btn.dataset.decade;
+    const locked = isDecadeLocked(d);
+    btn.classList.toggle('locked', locked);
+    if (!btn.hasAttribute('data-label')) btn.setAttribute('data-label', btn.textContent.trim());
+    const label = btn.getAttribute('data-label');
+    btn.innerHTML = locked ? `<span class="decade-lock">&#128274;</span>${label}` : label;
+  });
+  const upgradeBtn = document.getElementById('decadeUpgradeBtn');
+  if (upgradeBtn) upgradeBtn.classList.toggle('hidden', isPremiumUser());
+}
+
+function showUpgradeOverlay() {
+  document.getElementById('upgradeOverlay').classList.remove('hidden');
+}
+
+function closeUpgradeOverlay() {
+  document.getElementById('upgradeOverlay').classList.add('hidden');
+}
+
+function openUpgradePage() {
+  if (window.parent !== window) {
+    window.parent.postMessage({ type: 'ttt_upgrade' }, '*');
+  }
+}
+
+function selectPrice(plan) {
+  document.getElementById('upgradePriceMonthly').classList.toggle('sel', plan === 'monthly');
+  document.getElementById('upgradePriceAnnual').classList.toggle('sel', plan === 'annual');
 }
 
 // ---- Sheet-music note animation: real audio amplitude per frequency band, ----
@@ -1615,6 +1960,7 @@ function startNewRound(useDailyPuzzle) {
   stopStaffAnimation();
   stopAnswerTimer();
   audioEl.pause();
+  document.getElementById('upgradeCTAStrip').classList.add('hidden');
   document.querySelector('.celebration-card')?.remove();
   document.querySelector('.confetti-container')?.remove();
   currentSong = useDailyPuzzle ? getDailySong() : pickRandomSong();
@@ -2081,6 +2427,10 @@ function applyDecadeUI(decade) {
 async function switchDecade(decade) {
   closeDecadeDropdown();
   if (decade === currentDecade) return;
+  if (isDecadeLocked(decade)) {
+    showUpgradeOverlay();
+    return;
+  }
   el.playBtn.disabled = true;
   el.artistName.textContent = 'Loading…';
   try {
@@ -2115,12 +2465,18 @@ function closeHelp() { helpOverlay.classList.add('hidden'); }
 helpBtn.addEventListener('click', openHelp);
 helpCloseBtn.addEventListener('click', closeHelp);
 helpOverlay.addEventListener('click', e => { if (e.target === helpOverlay) closeHelp(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeHelp(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeHelp(); closeUpgradeOverlay(); } });
 
 el.playBtn.addEventListener('click', onPlayClick);
 el.earlyStopBtn.addEventListener('click', onEarlyStopClick);
 el.scoreInfoBtn.addEventListener('click', () => el.scoreInfoDetail.classList.toggle('hidden'));
-el.againBtn.addEventListener('click', () => startNewRound(false));
+el.againBtn.addEventListener('click', () => {
+  if (!isPremiumUser() && !wixMember?.memberId && hasPlayedToday()) {
+    showUpgradeOverlay();
+    return;
+  }
+  startNewRound(false);
+});
 el.shareBtn.addEventListener('click', shareResult);
 document.getElementById('shareClose').addEventListener('click', closeSharePopup);
 document.getElementById('shareCopy').addEventListener('click', () => { safeCopy(_shareText + '\n' + _shareUrl); closeSharePopup(); });
@@ -2130,6 +2486,14 @@ document.getElementById('myStatsBtn').addEventListener('click', showStats);
 document.getElementById('statsIconBtn').addEventListener('click', showStats);
 document.getElementById('statsClose').addEventListener('click', closeStats);
 document.getElementById('statsOverlay').addEventListener('click', e => { if (e.target === document.getElementById('statsOverlay')) closeStats(); });
+
+document.getElementById('decadeUpgradeBtn').addEventListener('click', showUpgradeOverlay);
+document.getElementById('upgradeCTABtn').addEventListener('click', showUpgradeOverlay);
+document.getElementById('upgradeOverlayClose').addEventListener('click', closeUpgradeOverlay);
+document.getElementById('upgradeOverlayDismiss').addEventListener('click', closeUpgradeOverlay);
+document.getElementById('upgradeGoBtn').addEventListener('click', openUpgradePage);
+document.getElementById('upgradeTopBtn').addEventListener('click', openUpgradePage);
+document.getElementById('upgradeOverlay').addEventListener('click', e => { if (e.target === document.getElementById('upgradeOverlay')) closeUpgradeOverlay(); });
 
 audioEl.addEventListener('ended', () => {
   if (clipTimer) clearTimeout(clipTimer);
@@ -2203,6 +2567,8 @@ window.addEventListener('message', function(e) {
   if (!d || typeof d !== 'object') return;
   if (d.type === 'ttt_member') {
     wixMember = { memberId: d.memberId, isPremium: d.isPremium, displayName: d.displayName };
+    updateDecadeGating();
+    if (isPremiumUser()) document.getElementById('upgradeCTAStrip').classList.add('hidden');
   }
 });
 
@@ -2218,6 +2584,7 @@ async function init() {
   }
   applyDecadeUI('70s');
   startNewRound(true);
+  updateDecadeGating();
   if (window.parent !== window) {
     window.parent.postMessage({ type: 'ttt_ready' }, '*');
   }
